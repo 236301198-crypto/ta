@@ -65,15 +65,10 @@ async function handleApiProxy(request, url) {
     };
     const boundary = "cfw-boundary-cat";
     const formBody =
-      `--${boundary}
-` +
-      `Content-Disposition: form-data; name="body"
-
-` +
+      `--${boundary}\n` +
+      `Content-Disposition: form-data; name="body"\n\n` +
       JSON.stringify(payload) +
-      `
---${boundary}--
-`;
+      `\n--${boundary}--\n`;
     headers = {
       ...BASE_HEADERS,
       "Content-Type": `multipart/form-data; boundary=${boundary}`
@@ -94,15 +89,10 @@ async function handleApiProxy(request, url) {
     };
     const boundary = "cfw-boundary-layout";
     const formBody =
-      `--${boundary}
-` +
-      `Content-Disposition: form-data; name="body"
-
-` +
+      `--${boundary}\n` +
+      `Content-Disposition: form-data; name="body"\n\n` +
       JSON.stringify(payload) +
-      `
---${boundary}--
-`;
+      `\n--${boundary}--\n`;
     headers = {
       ...BASE_HEADERS,
       "Content-Type": `multipart/form-data; boundary=${boundary}`
@@ -122,15 +112,10 @@ async function handleApiProxy(request, url) {
     };
     const boundary = "cfw-boundary-subcat";
     const formBody =
-      `--${boundary}
-` +
-      `Content-Disposition: form-data; name="body"
-
-` +
+      `--${boundary}\n` +
+      `Content-Disposition: form-data; name="body"\n\n` +
       JSON.stringify(payload) +
-      `
---${boundary}--
-`;
+      `\n--${boundary}--\n`;
     headers = {
       ...BASE_HEADERS,
       "Content-Type": `multipart/form-data; boundary=${boundary}`
@@ -1205,7 +1190,7 @@ function buildHTML() {
       if (parts.length === 0) return dateStr;
       const d = parts[0].split("-");
       if (d.length !== 3) return dateStr;
-      return `${d[2]}-${d[1]}-${d[0]}`;
+      return d[2] + "-" + d[1] + "-" + d[0];
     }
 
     function parseJSONSafe(text) {
@@ -1219,12 +1204,12 @@ function buildHTML() {
     function getYouTubeThumbnailFromUrl(url) {
       // Pattern: https://www.youtube.com/watch?v=VIDEO_ID
       // Thumbnails: https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg
-      // Fallback to hqdefault if needed.[web:1][web:3][web:5]
+      // Fallback to hqdefault if needed.
       try {
         const u = new URL(url);
         const vid = u.searchParams.get("v");
         if (!vid) return "";
-        return `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+        return "https://img.youtube.com/vi/" + vid + "/hqdefault.jpg";
       } catch (e) {
         return "";
       }
@@ -1320,7 +1305,7 @@ function buildHTML() {
     // API Helpers – Worker proxy endpoints
     // ======================================
     async function apiGetCourseCategory() {
-      const resp = await fetch(`${apiBase}/coursecategory/v1/getCourseCategory`, {
+      const resp = await fetch(apiBase + "/coursecategory/v1/getCourseCategory", {
         method: "POST"
       });
       const text = await resp.text();
@@ -1330,7 +1315,7 @@ function buildHTML() {
     }
 
     async function apiGetLayoutV2(categoryId) {
-      const resp = await fetch(`${apiBase}/coursecategory/v1/getLayoutV2?categoryId=${encodeURIComponent(categoryId)}`, {
+      const resp = await fetch(apiBase + "/coursecategory/v1/getLayoutV2?categoryId=" + encodeURIComponent(categoryId), {
         method: "POST"
       });
       const text = await resp.text();
@@ -1340,7 +1325,7 @@ function buildHTML() {
     }
 
     async function apiGetCoursesBySubCat(subcatId) {
-      const resp = await fetch(`${apiBase}/coursecategory/v1/getCoursesBySubCat?subcatId=${encodeURIComponent(subcatId)}`, {
+      const resp = await fetch(apiBase + "/coursecategory/v1/getCoursesBySubCat?subcatId=" + encodeURIComponent(subcatId), {
         method: "POST"
       });
       const text = await resp.text();
@@ -1356,7 +1341,7 @@ function buildHTML() {
 
     async function apiGetCourseCategories(courseId) {
       const resp = await fetch(
-        `${apiBase}/course/course/getCourseCategories?courseId=${encodeURIComponent(courseId)}`,
+        apiBase + "/course/course/getCourseCategories?courseId=" + encodeURIComponent(courseId),
         { method: "POST" }
       );
       const text = await resp.text();
@@ -1381,11 +1366,11 @@ function buildHTML() {
     }
 
     async function apiGetCourseVideos(courseId, categoryId, subCategoryId) {
-      const url = `${apiBase}/candidate/candidate/getCourseVideos?courseId=${encodeURIComponent(
+      const url = apiBase + "/candidate/candidate/getCourseVideos?courseId=" + encodeURIComponent(
         courseId
-      )}&categoryId=${encodeURIComponent(categoryId)}&subCategoryId=${encodeURIComponent(
+      ) + "&categoryId=" + encodeURIComponent(categoryId) + "&subCategoryId=" + encodeURIComponent(
         subCategoryId
-      )}`;
+      );
       const resp = await fetch(url, { method: "POST" });
       const text = await resp.text();
       const json = parseJSONSafe(text);
@@ -1414,19 +1399,19 @@ function buildHTML() {
 
         const thumbUrl = batch.thumb || "";
         const thumbHtml = thumbUrl
-          ? `<img src="${thumbUrl}" alt="thumbnail" />`
+          ? '<img src="' + thumbUrl + '" alt="thumbnail" />'
           : "";
 
-        card.innerHTML = `
+        card.innerHTML = \`
           <div class="course-thumb">
-            ${thumbHtml}
+            \${thumbHtml}
             <div class="course-tag">Saved Batch</div>
           </div>
           <div class="course-body">
-            <div class="course-title">${batch.courseName || "Course"}</div>
+            <div class="course-title">\${batch.courseName || "Course"}</div>
             <div class="course-meta">
-              <span><span class="inline-icon">📂</span>${batch.categoryName || "Batch"}</span>
-              <span class="course-price">${formatPrice(batch.price)}</span>
+              <span><span class="inline-icon">📂</span>\${batch.categoryName || "Batch"}</span>
+              <span class="course-price">\${formatPrice(batch.price)}</span>
             </div>
             <div class="course-actions">
               <button class="btn btn-primary btn-open-batch">
@@ -1437,7 +1422,7 @@ function buildHTML() {
               </button>
             </div>
           </div>
-        `;
+        \`;
 
         card.querySelector(".btn-open-batch").addEventListener("click", () => {
           // Load full details for this saved batch
@@ -1488,7 +1473,7 @@ function buildHTML() {
       allCoursesCategories.forEach((cc, idx) => {
         const chip = document.createElement("div");
         chip.className = "chip" + (idx === 0 ? " chip-active" : "");
-        chip.textContent = cc.courseCategory || `Category ${idx + 1}`;
+        chip.textContent = cc.courseCategory || "Category " + (idx + 1);
         chip.dataset.categoryId = cc.categoryId;
         chip.addEventListener("click", () => {
           document.querySelectorAll("#allCoursesChipGroup .chip").forEach(c => c.classList.remove("chip-active"));
@@ -1562,19 +1547,19 @@ function buildHTML() {
         card.dataset.courseId = courseId;
 
         const thumbHtml = thumb
-          ? `<img src="${thumb}" alt="course thumbnail" />`
+          ? '<img src="' + thumb + '" alt="course thumbnail" />'
           : "";
 
-        card.innerHTML = `
+        card.innerHTML = \`
           <div class="course-thumb">
-            ${thumbHtml}
+            \${thumbHtml}
             <div class="course-tag">Course</div>
           </div>
           <div class="course-body">
-            <div class="course-title">${courseName}</div>
+            <div class="course-title">\${courseName}</div>
             <div class="course-meta">
-              <span><span class="inline-icon">📘</span>Course ID: ${courseId}</span>
-              <span class="course-price">${formatPrice(price)}</span>
+              <span><span class="inline-icon">📘</span>Course ID: \${courseId}</span>
+              <span class="course-price">\${formatPrice(price)}</span>
             </div>
             <div class="course-actions">
               <button class="btn btn-primary btn-add-mybatch">
@@ -1585,7 +1570,7 @@ function buildHTML() {
               </button>
             </div>
           </div>
-        `;
+        \`;
 
         // Add to My Batches
         card.querySelector(".btn-add-mybatch").addEventListener("click", () => {
@@ -1640,11 +1625,11 @@ function buildHTML() {
         const card = document.createElement("div");
         card.className = "course-card";
         const name = cc.courseCategory || "Category";
-        card.innerHTML = `
+        card.innerHTML = \`
           <div class="course-body">
-            <div class="course-title">${name}</div>
+            <div class="course-title">\${name}</div>
             <div class="course-meta">
-              <span><span class="inline-icon">📂</span>ID: ${cc.categoryId}</span>
+              <span><span class="inline-icon">📂</span>ID: \${cc.categoryId}</span>
               <span class="badge badge-secondary">Category</span>
             </div>
             <div class="course-actions">
@@ -1653,7 +1638,7 @@ function buildHTML() {
               </button>
             </div>
           </div>
-        `;
+        \`;
 
         card.querySelector(".btn-open-category").addEventListener("click", () => {
           loadAllBatchesForCategory(cc.categoryId, name);
@@ -1719,19 +1704,19 @@ function buildHTML() {
         card.dataset.courseId = courseId;
 
         const thumbHtml = thumb
-          ? `<img src="${thumb}" alt="course thumbnail" />`
+          ? '<img src="' + thumb + '" alt="course thumbnail" />'
           : "";
 
-        card.innerHTML = `
+        card.innerHTML = \`
           <div class="course-thumb">
-            ${thumbHtml}
-            <div class="course-tag">${categoryName}</div>
+            \${thumbHtml}
+            <div class="course-tag">\${categoryName}</div>
           </div>
           <div class="course-body">
-            <div class="course-title">${courseName}</div>
+            <div class="course-title">\${courseName}</div>
             <div class="course-meta">
-              <span><span class="inline-icon">📚</span>Course ID: ${courseId}</span>
-              <span class="course-price">${formatPrice(price)}</span>
+              <span><span class="inline-icon">📚</span>Course ID: \${courseId}</span>
+              <span class="course-price">\${formatPrice(price)}</span>
             </div>
             <div class="course-actions">
               <button class="btn btn-primary btn-open-batch-detail">
@@ -1742,7 +1727,7 @@ function buildHTML() {
               </button>
             </div>
           </div>
-        `;
+        \`;
 
         // Add to my batches
         card.querySelector(".btn-add-mybatch").addEventListener("click", () => {
@@ -1808,19 +1793,19 @@ function buildHTML() {
 
           const chapterId = categoryId;
 
-          chapterDiv.innerHTML = `
+          chapterDiv.innerHTML = \`
             <div class="chapter-header">
               <div class="chapter-header-title">
-                <span>${cat.categoryName}</span>
-                <span>Subject / Chapter • ${cat.sub.length} topics</span>
+                <span>\${cat.categoryName}</span>
+                <span>Subject / Chapter • \${cat.sub.length} topics</span>
               </div>
               <div class="chapter-header-meta">
-                <span class="badge badge-chapter">ID: ${chapterId}</span>
+                <span class="badge badge-chapter">ID: \${chapterId}</span>
                 <span class="inline-icon">▼</span>
               </div>
             </div>
             <div class="chapter-body"></div>
-          `;
+          \`;
 
           const header = chapterDiv.querySelector(".chapter-header");
           const body = chapterDiv.querySelector(".chapter-body");
@@ -1865,11 +1850,11 @@ function buildHTML() {
         topicDiv.className = "chapter";
         const topicId = subId;
 
-        topicDiv.innerHTML = `
+        topicDiv.innerHTML = \`
           <div class="chapter-header">
             <div class="chapter-header-title">
-              <span>${subName}</span>
-              <span>Topic ID: ${topicId}</span>
+              <span>\${subName}</span>
+              <span>Topic ID: \${topicId}</span>
             </div>
             <div class="chapter-header-meta">
               <span class="badge badge-secondary">Topic</span>
@@ -1877,7 +1862,7 @@ function buildHTML() {
             </div>
           </div>
           <div class="chapter-body"></div>
-        `;
+        \`;
 
         const header = topicDiv.querySelector(".chapter-header");
         const body = topicDiv.querySelector(".chapter-body");
@@ -1892,7 +1877,7 @@ function buildHTML() {
           if (body.dataset.loaded) return;
           body.dataset.loaded = "1";
 
-          const urlPath = `/bid/${courseId}/subid/${subId}/topic/${topicId}`;
+          const urlPath = "/bid/" + courseId + "/subid/" + subId + "/topic/" + topicId;
           const bcTrail = document.getElementById("breadcrumbTrail");
           if (bcTrail) bcTrail.textContent = urlPath;
 
@@ -1915,24 +1900,24 @@ function buildHTML() {
               const thumbUrl = vlink ? getYouTubeThumbnailFromUrl(vlink) : "";
 
               const thumbHtml = thumbUrl
-                ? `<img src="${thumbUrl}" alt="video thumb" />`
+                ? '<img src="' + thumbUrl + '" alt="video thumb" />'
                 : "";
 
-              row.innerHTML = `
-                <div class="video-thumb">${thumbHtml}</div>
+              row.innerHTML = \`
+                <div class="video-thumb">\text{thumbHtml}</div>
                 <div class="video-body">
-                  <div class="video-title">${title}</div>
+                  <div class="video-title">\${title}</div>
                   <div class="video-meta">
-                    <span class="pill-date">${dateFormatted || "No date"}</span>
-                    ${vlink ? '<span class="badge badge-video">Video</span>' : ""}
-                    ${plink ? '<span class="badge badge-pdf">Board PDF</span>' : ""}
+                    <span class="pill-date">\${dateFormatted || "No date"}</span>
+                    \text{vlink ? '<span class="badge badge-video">Video</span>' : ""}
+                    \text{plink ? '<span class="badge badge-pdf">Board PDF</span>' : ""}
                   </div>
                   <div class="video-actions">
-                    ${vlink ? '<a href="' + vlink + '" target="_blank">Open Video</a>' : ""}
-                    ${plink ? '<a href="' + plink + '" target="_blank">Open PDF</a>' : ""}
+                    \text{vlink ? '<a href="' + vlink + '" target="_blank">Open Video</a>' : ""}
+                    \text{plink ? '<a href="' + plink + '" target="_blank">Open PDF</a>' : ""}
                   </div>
                 </div>
-              `;
+              \`;
 
               container.appendChild(row);
             });
