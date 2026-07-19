@@ -103,7 +103,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
 <html lang="hi" class="h-full bg-slate-950 text-slate-100">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Teachers Academy - Interactive Classroom Portal</title>
     
     <!-- Tailwind CSS Engine -->
@@ -183,7 +183,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             100% { background-position: -200% 0; }
         }
         .view-panel {
-            transition: opacity 0.2s ease-in-out;
+            transition: opacity 0.15s ease-in-out;
         }
     </style>
 </head>
@@ -191,7 +191,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
     <!-- GLOBAL PREMIUM TOP HEADER BAR -->
     <nav class="glass-nav sticky top-0 z-40 w-full flex-none">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 
                 <!-- Premium Logo & Brand Name "TEACHERS ACADEMY by Naveen" -->
@@ -214,15 +214,11 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     </div>
                 </div>
 
-                <!-- Right Live Indicator Only -->
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-2 bg-slate-900/90 px-3.5 py-1.5 rounded-full border border-slate-800">
-                        <span class="relative flex h-2 w-2">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        <span class="text-[10px] sm:text-xs font-semibold text-slate-300">Live Server Connected</span>
-                    </div>
+                <!-- Simple Clean Navigation Button (Header) -->
+                <div class="flex items-center gap-2">
+                    <button onclick="TA.Router.navigate('#/all-courses')" class="hidden sm:flex bg-gradient-to-r from-academy-600 to-indigo-600 hover:from-academy-500 hover:to-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-lg items-center gap-1.5">
+                        <i class="fa-solid fa-compass"></i> Explore Courses
+                    </button>
                 </div>
                 
             </div>
@@ -230,7 +226,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
     </nav>
 
     <!-- MAIN FRAME LAYOUT -->
-    <div class="flex-1 flex overflow-hidden">
+    <div class="flex-1 flex overflow-hidden w-full">
         
         <!-- SIDEBAR (DESKTOP) -->
         <aside class="hidden lg:flex flex-col w-72 bg-slate-950 border-r border-slate-900/60 p-5 shrink-0 justify-between">
@@ -274,10 +270,10 @@ const HTML_CONTENT = `<!DOCTYPE html>
         </aside>
 
         <!-- MAIN WORKSPACE -->
-        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-950 relative">
+        <main class="flex-1 flex flex-col overflow-y-auto bg-slate-950 relative w-full">
             
             <!-- MASTER CONTROLS / TITLE BAR -->
-            <div id="master-header" class="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-md border-b border-slate-900 px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+            <div id="master-header" class="sticky top-0 z-30 bg-slate-950/90 backdrop-blur-md border-b border-slate-900 px-4 py-4 flex items-center justify-between gap-4 w-full">
                 <div class="flex items-center gap-3">
                     <button id="btn-master-back" onclick="window.history.back()" class="hidden hover:bg-slate-900 bg-slate-950 p-2.5 rounded-xl text-slate-400 hover:text-white border border-slate-800 transition-all">
                         <i class="fa-solid fa-arrow-left"></i>
@@ -288,15 +284,15 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <button onclick="TA.Router.navigate('#/all-courses')" class="bg-gradient-to-r from-academy-600 to-indigo-600 hover:from-academy-500 hover:to-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-lg flex items-center gap-1.5">
+                <div>
+                    <button id="master-btn-all-courses" onclick="TA.Router.navigate('#/all-courses')" class="bg-gradient-to-r from-academy-600 to-indigo-600 hover:from-academy-500 hover:to-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-lg flex items-center gap-1.5">
                         <i class="fa-solid fa-plus-circle"></i> Browse All Courses
                     </button>
                 </div>
             </div>
 
             <!-- VIEW 1: MY BATCHES (DASHBOARD) -->
-            <div id="view-my-batches" class="view-panel p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+            <div id="view-my-batches" class="view-panel p-4 sm:p-6 lg:p-8 w-full mx-auto space-y-6">
                 <!-- Welcome Card -->
                 <div class="bg-gradient-to-r from-slate-900 via-indigo-950/10 to-slate-900 p-6 rounded-3xl border border-indigo-950/20 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
                     <div class="space-y-1.5 relative z-10">
@@ -331,20 +327,20 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 </div>
 
                 <!-- My Batches Grid -->
-                <div id="my-batches-grid-canvas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div id="my-batches-grid-canvas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                     <!-- Dynamic -->
                 </div>
             </div>
 
             <!-- VIEW 2: EXPLORE CATEGORIES (ALL COURSES ENTRY SCREEN) -->
-            <div id="view-categories" class="view-panel hidden p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+            <div id="view-categories" class="view-panel hidden p-4 sm:p-6 lg:p-8 w-full mx-auto space-y-6">
                 <div class="bg-slate-900/40 border border-slate-900 p-6 rounded-3xl space-y-3">
                     <h3 class="text-lg font-bold text-white">Choose Learning Path</h3>
                     <p class="text-xs text-slate-400">अपनी पसंदीदा कैटेगरी का चयन करें और उसके अंतर्गत उपलब्ध विशेष कोर्सेज देखें।</p>
                 </div>
 
                 <!-- Loader -->
-                <div id="categories-shimmer" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div id="categories-shimmer" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                     <div class="shimmer h-32 rounded-2xl"></div>
                     <div class="shimmer h-32 rounded-2xl"></div>
                     <div class="shimmer h-32 rounded-2xl"></div>
@@ -352,13 +348,13 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 </div>
 
                 <!-- Categories Grid -->
-                <div id="categories-selection-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div id="categories-selection-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                     <!-- Dynamic -->
                 </div>
             </div>
 
             <!-- VIEW 3: COURSE LIST UNDER SELECTION -->
-            <div id="view-category-courses" class="view-panel hidden p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+            <div id="view-category-courses" class="view-panel hidden p-4 sm:p-6 lg:p-8 w-full mx-auto space-y-6">
                 <div class="flex items-center justify-between border-b border-slate-900 pb-4">
                     <div class="space-y-1">
                         <h3 id="category-panel-title" class="text-md sm:text-lg font-extrabold text-white">Courses</h3>
@@ -370,21 +366,21 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 </div>
 
                 <!-- Loader -->
-                <div id="courses-shimmer" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div id="courses-shimmer" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                     <div class="shimmer h-72 rounded-3xl"></div>
                     <div class="shimmer h-72 rounded-3xl"></div>
                 </div>
 
                 <!-- Courses Output -->
-                <div id="courses-display-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div id="courses-display-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                     <!-- Dynamic -->
                 </div>
             </div>
 
             <!-- VIEW 4: ACTIVE CLASSROOM & LECTURE VIEW -->
-            <div id="view-classroom" class="view-panel hidden flex-1 flex flex-col overflow-hidden">
+            <div id="view-classroom" class="view-panel hidden flex-1 flex flex-col overflow-hidden w-full">
                 <!-- Classroom Header Banner -->
-                <div class="bg-slate-900/60 border-b border-slate-900 p-4 sm:p-6 flex-none">
+                <div class="bg-slate-900/60 border-b border-slate-900 p-4 sm:p-6 flex-none w-full">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div class="flex items-center gap-4">
                             <img id="classroom-banner-img" src="" alt="Thumbnail" class="h-14 w-24 object-cover rounded-xl border border-slate-800 shadow">
@@ -399,14 +395,14 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     </div>
                 </div>
 
-                <!-- Dual View Mode: Subject Navigator vs Live Playlist -->
-                <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                <!-- Adaptive Full Screen Dual Panels (Syllabus Navigator / Playlist) -->
+                <div class="flex-1 flex flex-col lg:flex-row overflow-hidden w-full">
                     
-                    <!-- Syllabus Navigator (Left Drawer) -->
-                    <div class="w-full lg:w-80 bg-slate-950 border-b lg:border-b-0 lg:border-r border-slate-900 p-4 shrink-0 overflow-y-auto space-y-4">
+                    <!-- Syllabus Navigator Drawer (Full-Width on Mobile when no chapter is active) -->
+                    <div id="classroom-syllabus-panel" class="w-full lg:w-80 bg-slate-950 border-b lg:border-b-0 lg:border-r border-slate-900 p-4 shrink-0 overflow-y-auto space-y-4">
                         <div class="px-1 space-y-0.5">
                             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Syllabus Index</h4>
-                            <p class="text-[10px] text-slate-500">Subject-wise चैप्टर्स लोड करें</p>
+                            <p class="text-[10px] text-slate-500">विषयानुसार (Subject-wise) चैप्टर्स लोड करें</p>
                         </div>
                         
                         <!-- Accordion Loaders -->
@@ -415,17 +411,23 @@ const HTML_CONTENT = `<!DOCTYPE html>
                             <div class="shimmer h-12 rounded-xl"></div>
                         </div>
 
-                        <div id="syllabus-accordion-tree" class="space-y-2">
+                        <div id="syllabus-accordion-tree" class="space-y-2 w-full">
                             <!-- Dynamic -->
                         </div>
                     </div>
 
-                    <!-- Playlist Display Area (Right Viewport) -->
-                    <div class="flex-1 flex flex-col overflow-hidden bg-slate-950/40">
+                    <!-- Playlist Display Area (Full-Width on Mobile when a chapter is selected) -->
+                    <div id="classroom-lectures-panel" class="hidden lg:flex flex-1 flex-col overflow-hidden bg-slate-950/40 w-full">
                         <div class="p-4 border-b border-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <h4 id="active-subject-header" class="text-xs sm:text-sm font-bold text-white">Select a Topic</h4>
-                                <p id="active-chapter-header" class="text-[11px] text-slate-500">चैप्टर के लेक्चर्स यहाँ दिखाई देंगे</p>
+                            <div class="flex items-center gap-3">
+                                <!-- Mobile Only Back-To-Syllabus Button -->
+                                <button onclick="TA.UI.showSyllabusIndexMobile()" class="lg:hidden bg-slate-900 hover:bg-slate-800 p-2 rounded-xl border border-slate-800 text-slate-300">
+                                    <i class="fa-solid fa-chevron-left mr-1"></i> Chapters
+                                </button>
+                                <div>
+                                    <h4 id="active-subject-header" class="text-xs sm:text-sm font-bold text-white">Select a Topic</h4>
+                                    <p id="active-chapter-header" class="text-[11px] text-slate-500">चैप्टर के लेक्चर्स यहाँ दिखाई देंगे</p>
+                                </div>
                             </div>
                             
                             <!-- Internal Search Filter -->
@@ -437,7 +439,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
                         <!-- Scroller Grid -->
                         <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
-                            <div id="lectures-shimmer" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div id="lectures-shimmer" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                                 <div class="shimmer h-48 rounded-2xl"></div>
                                 <div class="shimmer h-48 rounded-2xl"></div>
                             </div>
@@ -448,7 +450,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                                 <p class="text-xs">पढ़ना शुरू करने के लिए लेफ्ट साइडबार से कोई भी chapter लोड करें।</p>
                             </div>
 
-                            <div id="classroom-lectures-output-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div id="classroom-lectures-output-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                                 <!-- Dynamic Lectures -->
                             </div>
                         </div>
@@ -544,7 +546,11 @@ const HTML_CONTENT = `<!DOCTYPE html>
             },
 
             navigate: function(hash) {
-                window.location.hash = hash;
+                if (window.location.hash === hash) {
+                    this.handleRoute(); // Force re-render if clicked on the same tab
+                } else {
+                    window.location.hash = hash;
+                }
             },
 
             handleRoute: async function() {
@@ -600,12 +606,18 @@ const HTML_CONTENT = `<!DOCTYPE html>
                         const catId = params[1];
                         const subId = params[2];
                         await TA.API.fetchLectures(courseId, catId, subId);
+                        
+                        // Show Playlist view and Hide Syllabus Index view on mobile screen
+                        TA.UI.showLecturesPanelMobile();
                     } else {
-                        // Clear active states
+                        // Clear active states and show only Syllabus index
                         document.getElementById('classroom-lectures-output-grid').innerHTML = '';
                         document.getElementById('classroom-empty-state').classList.remove('hidden');
                         document.getElementById('active-subject-header').innerText = "Select Classroom Chapter";
                         document.getElementById('active-chapter-header').innerText = "पढ़ना शुरू करने के लिए लेफ्ट साइडबार में उपलब्ध टॉपिक्स पर क्लिक करें।";
+                        
+                        // Show Chapters list and Hide Playlist on mobile
+                        TA.UI.showSyllabusIndexMobile();
                     }
                 }
             },
@@ -790,6 +802,21 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     const percent = Math.min(100, Math.round(doneCount * 12.5));
                     document.getElementById('desktop-progress-bar').style.width = percent + "%";
                     document.getElementById('stat-lecture-progress').innerText = percent + "%";
+                },
+
+                // Toggle views on mobile class layout
+                showLecturesPanelMobile: function() {
+                    if (window.innerWidth < 1024) {
+                        document.getElementById('classroom-syllabus-panel').classList.add('hidden');
+                        document.getElementById('classroom-lectures-panel').classList.remove('hidden');
+                    }
+                },
+
+                showSyllabusIndexMobile: function() {
+                    if (window.innerWidth < 1024) {
+                        document.getElementById('classroom-syllabus-panel').classList.remove('hidden');
+                        document.getElementById('classroom-lectures-panel').classList.add('hidden');
+                    }
                 },
 
                 enrollBatch: function(courseObj) {
