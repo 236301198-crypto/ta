@@ -1,12 +1,10 @@
 /**
- * TEACHERS ACADEMY - Unified Cloudflare Worker Script (ta.js)
- * Is ek file me complete Proxy APIs aur Frontend Application fully bundled hain.
- * Deploy hone par ye directly browser me static HTML serve karega aur API requests ko mask karega.
+ * TEACHERS ACADEMY - Premium EdTech Platform
+ * Unified Cloudflare Worker Script (ta.js) - 2026 Edition
  */
 
 const DEFAULT_TOKEN = "4fg1iZcgrW2X8QsF0DpX0ekBNZSNmugOWw9TJWVX5cTmYX4il3VIO%2B1lP6eCPAxoj93%2BhuIgNm03oQ1sCIkmv4zjcEdZwiTA5kpS8WG9VH9tQ6nsKQRDDjSzcQCQpASTHpGzOr%2F4vCIOahj4Z%2FMrQ2eud8PtLvIp1xit7EARO18%3D";
 
-// Classwalla APIs ke liye headers
 const BASE_HEADERS = {
   'Host': 'backend.classwalla.com',
   'Connection': 'Keep-Alive',
@@ -26,7 +24,6 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // CORS preflight requests ko handle karne ke liye handler
     if (request.method === "OPTIONS") {
       return new Response(null, {
         headers: {
@@ -40,188 +37,89 @@ export default {
 
     // --- API PROXY ROUTES ---
 
-    // 1. Get Categories List
     if (path === "/api/categories") {
       try {
         const boundary = "f30abafb-92e2-4b52-bf44-12df495babc3";
         const body_cat = JSON.stringify({ data: { companyId: 46 }, token: DEFAULT_TOKEN });
-        const data_cat = 
-          `--${boundary}\r\n` +
-          `Content-Disposition: form-data; name="body"\r\n\r\n` +
-          `${body_cat}\r\n` +
-          `--${boundary}--\r\n`;
+        const data_cat = `--${boundary}\r\nContent-Disposition: form-data; name="body"\r\n\r\n${body_cat}\r\n--${boundary}--\r\n`;
 
         const resp = await fetch("https://backend.classwalla.com/coursecategory/v1/getCourseCategory", {
-          method: "POST",
-          headers: {
-            ...BASE_HEADERS,
-            'Content-Type': `multipart/form-data; boundary=${boundary}`
-          },
-          body: data_cat
+          method: "POST", headers: { ...BASE_HEADERS, 'Content-Type': `multipart/form-data; boundary=${boundary}` }, body: data_cat
         });
-
-        const data = await resp.json();
-        return corsResponse(data);
-      } catch (err) {
-        return errorResponse(err);
-      }
+        return corsResponse(await resp.json());
+      } catch (err) { return errorResponse(err); }
     }
 
-    // 2. Get Courses list by Category (Chained getLayoutV2 & getCoursesBySubCat)
     if (path === "/api/courses") {
       try {
         const categoryId = url.searchParams.get("categoryId");
-        if (!categoryId) {
-          return corsResponse({ error: "Missing categoryId" }, 400);
-        }
+        if (!categoryId) return corsResponse({ error: "Missing categoryId" }, 400);
 
-        // Phase A: Get Layout V2 se subcategoryId extract karna
         const boundary_layout = "276b3148-2c4f-406a-9d76-a4379e9e122c";
-        const body_layout = JSON.stringify({
-          data: {
-            candidateId: "",
-            categoryId: parseInt(categoryId, 10),
-            companyId: 46,
-            limit: "100",
-            offset: "0"
-          },
-          token: DEFAULT_TOKEN
-        });
-        const data_layout = 
-          `--${boundary_layout}\r\n` +
-          `Content-Disposition: form-data; name="body"\r\n\r\n` +
-          `${body_layout}\r\n` +
-          `--${boundary_layout}--\r\n`;
+        const body_layout = JSON.stringify({ data: { candidateId: "", categoryId: parseInt(categoryId, 10), companyId: 46, limit: "100", offset: "0" }, token: DEFAULT_TOKEN });
+        const data_layout = `--${boundary_layout}\r\nContent-Disposition: form-data; name="body"\r\n\r\n${body_layout}\r\n--${boundary_layout}--\r\n`;
 
         const resp_layout = await fetch("https://backend.classwalla.com/coursecategory/v1/getLayoutV2", {
-          method: "POST",
-          headers: {
-            ...BASE_HEADERS,
-            'Content-Type': `multipart/form-data; boundary=${boundary_layout}`
-          },
-          body: data_layout
+          method: "POST", headers: { ...BASE_HEADERS, 'Content-Type': `multipart/form-data; boundary=${boundary_layout}` }, body: data_layout
         });
-
         const layout_json = await resp_layout.json();
         const subcategoryId = layout_json?.data?.layout?.[0]?.id;
 
-        if (!subcategoryId) {
-          return corsResponse({ data: { candidateCourseList: [] } });
-        }
+        if (!subcategoryId) return corsResponse({ data: { candidateCourseList: [] } });
 
-        // Phase B: Subcat ID se active courses pull karna
         const boundary_subcat = "1af43917-9fc4-43d6-8f6a-dc58aaa6ccef";
-        const body_subcat = JSON.stringify({
-          data: {
-            limit: "100",
-            offset: "0",
-            searchString: "",
-            subcatId: String(subcategoryId)
-          },
-          token: DEFAULT_TOKEN
-        });
-        const data_subcat = 
-          `--${boundary_subcat}\r\n` +
-          `Content-Disposition: form-data; name="body"\r\n\r\n` +
-          `${body_subcat}\r\n` +
-          `--${boundary_subcat}--\r\n`;
+        const body_subcat = JSON.stringify({ data: { limit: "100", offset: "0", searchString: "", subcatId: String(subcategoryId) }, token: DEFAULT_TOKEN });
+        const data_subcat = `--${boundary_subcat}\r\nContent-Disposition: form-data; name="body"\r\n\r\n${body_subcat}\r\n--${boundary_subcat}--\r\n`;
 
         const resp_subcat = await fetch("https://backend.classwalla.com/coursecategory/v1/getCoursesBySubCat", {
-          method: "POST",
-          headers: {
-            ...BASE_HEADERS,
-            'Content-Type': `multipart/form-data; boundary=${boundary_subcat}`
-          },
-          body: data_subcat
+          method: "POST", headers: { ...BASE_HEADERS, 'Content-Type': `multipart/form-data; boundary=${boundary_subcat}` }, body: data_subcat
         });
-
-        const subcat_json = await resp_subcat.json();
-        return corsResponse(subcat_json);
-      } catch (err) {
-        return errorResponse(err);
-      }
+        return corsResponse(await resp_subcat.json());
+      } catch (err) { return errorResponse(err); }
     }
 
-    // 3. Course Categories/Syllabus chapters fetch karna
     if (path === "/api/course-categories") {
       try {
         const courseId = url.searchParams.get("courseId");
-        if (!courseId) {
-          return corsResponse({ error: "Missing courseId" }, 400);
-        }
+        if (!courseId) return corsResponse({ error: "Missing courseId" }, 400);
 
-        const body_str = JSON.stringify({
-          data: { courseId: String(courseId) },
-          token: DEFAULT_TOKEN
-        });
+        const body_str = JSON.stringify({ data: { courseId: String(courseId) }, token: DEFAULT_TOKEN });
         const form_body = `body=${encodeURIComponent(body_str)}`;
 
         const resp = await fetch("https://backend.classwalla.com/course/course/getCourseCategories", {
-          method: "POST",
-          headers: {
-            ...LEGACY_HEADERS,
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: form_body
+          method: "POST", headers: { ...LEGACY_HEADERS, 'Content-Type': 'application/x-www-form-urlencoded' }, body: form_body
         });
-
-        const data = await resp.json();
-        return corsResponse(data);
-      } catch (err) {
-        return errorResponse(err);
-      }
+        return corsResponse(await resp.json());
+      } catch (err) { return errorResponse(err); }
     }
 
-    // 4. Topic videos aur study material PDFs retrieve karna
     if (path === "/api/videos") {
       try {
         const courseId = url.searchParams.get("courseId");
         const categoryId = url.searchParams.get("categoryId");
         const subCategoryId = url.searchParams.get("subCategoryId");
-
-        if (!courseId || !categoryId || !subCategoryId) {
-          return corsResponse({ error: "Parameters match missing" }, 400);
-        }
+        if (!courseId || !categoryId || !subCategoryId) return corsResponse({ error: "Parameters match missing" }, 400);
 
         const body_str = JSON.stringify({
-          data: {
-            courseId: String(courseId),
-            filters: {
-              videoCategory: String(categoryId),
-              videoSubCategory: String(subCategoryId)
-            },
-            limit: "1000",
-            offset: "0"
-          },
+          data: { courseId: String(courseId), filters: { videoCategory: String(categoryId), videoSubCategory: String(subCategoryId) }, limit: "1000", offset: "0" },
           token: DEFAULT_TOKEN
         });
         const form_body = `body=${encodeURIComponent(body_str)}`;
 
         const resp = await fetch("https://backend.classwalla.com/candidate/candidate/getCourseVideos", {
-          method: "POST",
-          headers: {
-            ...LEGACY_HEADERS,
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: form_body
+          method: "POST", headers: { ...LEGACY_HEADERS, 'Content-Type': 'application/x-www-form-urlencoded' }, body: form_body
         });
-
-        const data = await resp.json();
-        return corsResponse(data);
-      } catch (err) {
-        return errorResponse(err);
-      }
+        return corsResponse(await resp.json());
+      } catch (err) { return errorResponse(err); }
     }
 
     // --- FRONTEND APP INJECTION ---
-    // Koi bhi unknown route par complete single page HTML load hoga (No separate CSS/JS files needed)
     return new Response(HTML_PAGE, {
       headers: { "Content-Type": "text/html; charset=utf-8" }
     });
   }
 };
 
-// --- HELPERS FOR API ROUTES ---
 function corsResponse(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -235,289 +133,204 @@ function corsResponse(body, status = 200) {
 }
 
 function errorResponse(err) {
-  return corsResponse({
-    error: "Proxy route pe error aayi hai",
-    details: err.message
-  }, 500);
+  return corsResponse({ error: "Proxy route error", details: err.message }, 500);
 }
 
 // --- FRONTEND HTML, CSS & CLIENT JAVASCRIPT BUNDLED TOGETHER ---
-// Is section me koi backtick syntax error na hone dene ke liye humne traditional JS strings aur static tags use kiye hain.
 const HTML_PAGE = `<!DOCTYPE html>
 <html lang="en" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Teachers Academy | Dashboard</title>
-    <!-- Tailwind CSS dynamic loading -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: {
-                            50: '#f0f7ff',
-                            100: '#e0effe',
-                            500: '#0284c7',
-                            600: '#0369a1',
-                            700: '#075985',
-                            800: '#0c4a6e',
-                            900: '#0f172a',
-                        }
+                        primary: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e' }
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            text-rendering: optimizeLegibility;
-            -webkit-font-smoothing: antialiased;
-        }
-        .tab-link {
-            color: #475569;
-        }
-        .tab-link:hover {
-            color: #0284c7;
-            background-color: #f1f5f9;
-        }
-        .tab-link.active-tab {
-            color: #ffffff;
-            background-color: #0284c7;
-            box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2);
-        }
-        .loader-spinner {
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .accordion-item.active .accordion-content {
-            max-height: 500px;
-        }
-        .accordion-header svg {
-            transition: transform 0.25s ease;
-        }
-        .accordion-item.active .accordion-header svg {
-            transform: rotate(180deg);
-        }
-        .hover-card-trigger {
-            transition: transform 0.22s ease, box-shadow 0.22s ease;
-        }
-        .hover-card-trigger:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 20px -8px rgba(0,0,0,0.08);
-        }
-        .aspect-video-box {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-        }
-        .aspect-video-box img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        #confirm-modal.show {
-            display: flex;
-        }
-        #confirm-modal.show #confirm-modal-box {
-            transform: scale(1);
-            opacity: 1;
-        }
+        body { text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+        .tab-link { color: #64748b; }
+        .tab-link:hover { color: #0284c7; background-color: #f1f5f9; }
+        .tab-link.active-tab { color: #ffffff; background-color: #0284c7; box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2); }
+        .loader-spinner { animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-in-out; }
+        .accordion-item.active .accordion-content { max-height: 800px; }
+        .accordion-header svg { transition: transform 0.3s ease; }
+        .accordion-item.active .accordion-header svg { transform: rotate(180deg); }
+        
+        .hover-card-trigger { transition: all 0.2s ease; }
+        .hover-card-trigger:hover { transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border-color: #cbd5e1; }
+        
+        .aspect-video-box { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; }
+        .aspect-video-box img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Active Lesson Highlight */
+        .lesson-card { transition: all 0.2s ease; border: 2px solid transparent; }
+        .lesson-card.active-lesson { border-color: #0284c7; background-color: #f0f9ff; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.15); transform: scale(1.01); }
+        
+        #confirm-modal.show { display: flex; }
+        #confirm-modal.show #confirm-modal-box { transform: scale(1); opacity: 1; }
+        
+        .section-view { display: none; animation: fadeIn 0.3s ease; }
+        .section-view.active-view { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="flex flex-col min-h-screen text-slate-800">
+<body class="flex flex-col min-h-screen text-slate-800 pb-16 md:pb-0">
 
-    <!-- Premium Branding Navigation Bar -->
-    <header class="sticky top-0 z-40 w-full bg-white border-b border-slate-100 shadow-sm backdrop-blur-md bg-white/95">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <!-- Premium Header -->
+    <header class="sticky top-0 z-40 w-full bg-white border-b border-slate-100 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.hash = '#/batches'">
                 <img src="https://play-lh.googleusercontent.com/x8XlorPIOcczsf2PNlrcW03SkziHQs-tqTMQegTMfWrthvLOmADAnbdxSKAJBaJN8CB8tuLQ80L1mmtb-YAHtNU" 
-                     alt="[Teachers Academy Logo]" 
-                     class="w-10 h-10 rounded-xl shadow-sm border border-slate-100 object-cover"
-                     onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&q=80'">
+                     class="w-10 h-10 rounded-lg shadow-sm border border-slate-100 object-cover" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&q=80'">
                 <div>
-                    <h1 class="text-lg font-bold tracking-tight text-primary-900 leading-tight">TEACHERS ACADEMY</h1>
-                    <p class="text-xs font-semibold text-amber-500 tracking-wider uppercase">Premium Branding by Naveen</p>
+                    <h1 class="text-lg font-black tracking-tight text-slate-900 leading-tight">TEACHERS ACADEMY</h1>
+                    <p class="text-[10px] font-bold text-amber-500 tracking-widest uppercase">Premium Branding by Naveen</p>
                 </div>
             </div>
-
-            <!-- Header Desktop Navigation Tabs -->
-            <nav class="hidden md:flex items-center space-x-1">
-                <a href="#/batches" id="nav-btn-batches" class="tab-link px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200">
-                    My Batches
-                    <span id="batches-count-badge" class="ml-1.5 px-2 py-0.5 text-xs font-bold rounded-full bg-slate-100 text-slate-600">0</span>
-                </a>
-                <a href="#/all" id="nav-btn-all" class="tab-link px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200">
-                    All Courses
-                </a>
+            <nav class="hidden md:flex space-x-2">
+                <a href="#/batches" id="nav-btn-batches" class="tab-link px-4 py-2 rounded-lg font-bold text-sm transition">My Batches <span id="batches-count-badge" class="ml-1 px-2 py-0.5 text-xs bg-white/20 rounded-full">0</span></a>
+                <a href="#/all" id="nav-btn-all" class="tab-link px-4 py-2 rounded-lg font-bold text-sm transition">All Courses</a>
             </nav>
         </div>
     </header>
 
-    <!-- Mobile Bottom Navigation Bar -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50 px-6 py-2 flex justify-around">
-        <a href="#/batches" id="mobile-nav-batches" class="flex flex-col items-center gap-1 text-slate-500 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-            <span class="text-[10px] font-medium">My Batches</span>
+    <!-- Mobile Navigation -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 px-6 py-2 flex justify-around">
+        <a href="#/batches" id="mobile-nav-batches" class="flex flex-col items-center gap-1 text-slate-400 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+            <span class="text-[10px] font-bold uppercase tracking-wider">My Batches</span>
         </a>
-        <a href="#/all" id="mobile-nav-all" class="flex flex-col items-center gap-1 text-slate-500 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-            <span class="text-[10px] font-medium">All Courses</span>
+        <a href="#/all" id="mobile-nav-all" class="flex flex-col items-center gap-1 text-slate-400 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            <span class="text-[10px] font-bold uppercase tracking-wider">All Courses</span>
         </a>
     </div>
 
-    <!-- Main Content Workspace -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-16 md:mb-0">
+    <!-- Main Workspace -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
-        <!-- SECTION 1: MY BATCHES TAB -->
-        <section id="section-batches" class="hidden space-y-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-2xl font-bold tracking-tight text-slate-900">Aapke Batches</h2>
-                    <p class="text-sm text-slate-500">Apne enrolled batches aur files ko yahan se access karein.</p>
-                </div>
-            </div>
-
-            <!-- Batches Grid -->
+        <!-- VIEW 1: MY BATCHES -->
+        <section id="view-batches" class="section-view space-y-6">
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight uppercase border-l-4 border-primary-600 pl-3">Aapke Batches</h2>
             <div id="batches-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-
-            <!-- Empty Placeholder -->
-            <div id="batches-empty-placeholder" class="hidden flex flex-col items-center justify-center py-16 text-center max-w-md mx-auto">
-                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-4">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            <div id="batches-empty" class="hidden flex flex-col items-center justify-center py-20 text-center">
+                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                 </div>
-                <h3 class="text-lg font-semibold text-slate-900">Koi Batch Add Nahi Kiya Hai</h3>
-                <p class="text-sm text-slate-500 mt-1 mb-6">Niche diye button se aap hamare premium streams ko browse kar sakte hain.</p>
-                <a href="#/all" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 shadow-sm transition">
-                    Browse All Courses
+                <h3 class="text-xl font-bold text-slate-900">Koi Batch Nahi Hai</h3>
+                <p class="text-sm text-slate-500 mt-2 mb-6">Niche diye button se naye batches explore karein.</p>
+                <a href="#/all" class="px-6 py-3 font-bold rounded-xl text-white bg-primary-600 hover:bg-primary-700 transition shadow-lg shadow-primary-600/30">Browse Courses</a>
+            </div>
+        </section>
+
+        <!-- VIEW 2: ALL CATEGORIES LIST -->
+        <section id="view-all-categories" class="section-view space-y-6">
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight uppercase border-l-4 border-primary-600 pl-3">Course Categories</h2>
+            <p class="text-sm font-semibold text-slate-500">Category chun kar naye batches load karein.</p>
+            <div id="categories-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4"></div>
+        </section>
+
+        <!-- VIEW 3: COURSES IN A SPECIFIC CATEGORY -->
+        <section id="view-category-courses" class="section-view space-y-6">
+            <div class="flex items-center gap-4 mb-2">
+                <a href="#/all" class="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm">
+                    <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
                 </a>
+                <h2 id="cat-courses-title" class="text-2xl font-extrabold text-slate-900 tracking-tight uppercase">Loading Courses...</h2>
             </div>
+            <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </section>
 
-        <!-- SECTION 2: ALL COURSES CATALOG TAB -->
-        <section id="section-all" class="hidden space-y-6">
-            <div>
-                <h2 class="text-2xl font-bold tracking-tight text-slate-900">Course Categories Dekhein</h2>
-                <p class="text-sm text-slate-500">Category chun kar naye aur interactive batches explore karein.</p>
-            </div>
-
-            <!-- Categories Filter -->
-            <div id="catalog-categories-container" class="flex flex-wrap gap-2 py-1"></div>
-
-            <!-- Grid Catalog -->
-            <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-
-            <!-- Welcome Placeholder if not selected -->
-            <div id="catalog-welcome-placeholder" class="flex flex-col items-center justify-center py-12 text-slate-400 text-center">
-                <svg class="w-16 h-16 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>
-                <p class="text-base font-medium">Upar di gayi category me se kisi ek par click karke courses load karein.</p>
-            </div>
-        </section>
-
-        <!-- SECTION 3: BATCH DETAIL VIEW -->
-        <section id="section-batch-detail" class="hidden space-y-6">
-            <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="space-y-1.5">
-                    <div class="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                        <a href="#/batches" class="hover:text-primary-600 transition">Aapke Batches</a>
-                        <span>/</span>
-                        <span id="detail-breadcrumb-course-name" class="text-slate-900 font-semibold truncate max-w-[200px] inline-block">Syllabus Details</span>
-                    </div>
-                    <h2 id="detail-course-title" class="text-2xl font-bold tracking-tight text-slate-900">Batch Syllabus...</h2>
+        <!-- VIEW 4: BATCH SYLLABUS INDEX (CHAPTERS) -->
+        <section id="view-batch-syllabus" class="section-view space-y-6">
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <div>
+                    <h2 id="syllabus-course-title" class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight uppercase">Batch Syllabus</h2>
+                    <p class="text-xs font-bold text-slate-400 tracking-widest uppercase mt-1">Syllabus Index</p>
                 </div>
-                <a href="#/batches" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-slate-700 bg-slate-50 hover:bg-slate-100 transition border border-slate-200">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                <a href="#/batches" class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     Wapas Jayein
                 </a>
             </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-2 sm:p-6 shadow-sm">
+                <div id="syllabus-chapters-list" class="space-y-3"></div>
+            </div>
+        </section>
 
-            <!-- Main Dynamic Panel -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- Left Chapter List Panel -->
-                <aside class="lg:col-span-4 bg-white border border-slate-100 rounded-2xl p-4 shadow-sm h-fit max-h-[80vh] overflow-y-auto">
-                    <h3 class="text-xs font-bold tracking-wider text-slate-400 uppercase px-2 mb-3">Syllabus Index</h3>
-                    <div id="syllabus-chapters-list" class="space-y-2"></div>
-                </aside>
-
-                <!-- Right Workspace Resource Panel -->
-                <section class="lg:col-span-8 space-y-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                            <h3 id="workspace-topic-name" class="text-xl font-bold tracking-tight text-slate-900">Topic select karein</h3>
-                            <p id="workspace-topic-stat" class="text-xs text-slate-500 font-medium mt-0.5">Left panel me se topic chapter choose karein.</p>
-                        </div>
-                        
-                        <!-- Search lessons -->
-                        <div class="relative w-full sm:w-64">
-                            <input type="text" id="workspace-search-input" placeholder="Lessons dhoondhein..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition shadow-sm">
-                            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                        </div>
+        <!-- VIEW 5: TOPIC LESSONS (VIDEOS/PDFS) -->
+        <section id="view-topic-lessons" class="section-view space-y-6">
+            <div class="bg-primary-600 rounded-2xl p-6 shadow-lg shadow-primary-600/20 text-white flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div class="flex items-start gap-4">
+                    <button onclick="goBackToSyllabus()" class="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition backdrop-blur-sm shrink-0 mt-1">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <div>
+                        <h2 id="lessons-topic-title" class="text-2xl sm:text-4xl font-black tracking-tight uppercase leading-tight drop-shadow-sm">Topic Name</h2>
+                        <p id="lessons-parent-title" class="text-sm font-bold text-primary-100 tracking-widest uppercase mt-2 opacity-90">Subject Name</p>
                     </div>
-
-                    <!-- Video / PDF List Grid -->
-                    <div id="lessons-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-
-                    <!-- Placeholders inside workspace -->
-                    <div id="workspace-empty-placeholder" class="hidden flex flex-col items-center justify-center py-16 text-slate-400">
-                        <svg class="w-12 h-12 mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253" /></svg>
-                        <p class="text-sm font-semibold">Is chapter me abhi koi materials published nahi hain.</p>
-                    </div>
-
-                    <div id="workspace-selection-placeholder" class="flex flex-col items-center justify-center py-16 text-slate-400">
-                        <svg class="w-12 h-12 mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M8 7h8m0 0V9a2 2 0 01-2 2H10a2 2 0 01-2-2V7" /></svg>
-                        <p class="text-sm font-semibold">Topic syllabus load karne ke liye left panel me se ek subcategory select karein.</p>
-                    </div>
-                </section>
+                </div>
+                <!-- Search Box -->
+                <div class="relative w-full md:w-64 shrink-0 mt-4 md:mt-0">
+                    <input type="text" id="lessons-search" placeholder="Search videos..." class="w-full pl-10 pr-4 py-3 bg-black/10 border border-white/20 rounded-xl text-sm text-white placeholder-white/60 focus:outline-none focus:bg-white/20 transition">
+                    <svg class="w-5 h-5 text-white/70 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+            </div>
+            
+            <div id="lessons-list" class="grid grid-cols-1 gap-4 max-w-4xl mx-auto"></div>
+            
+            <div id="lessons-empty" class="hidden flex flex-col items-center justify-center py-20 text-center">
+                <svg class="w-16 h-16 mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253" /></svg>
+                <h3 class="text-xl font-bold text-slate-900">Koi Data Nahi Hai</h3>
+                <p class="text-sm font-semibold text-slate-500 mt-1">Is topic me abhi videos upload nahi huye hain.</p>
             </div>
         </section>
     </main>
 
-    <!-- Global Full-Screen loader -->
-    <div id="loader-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-white/75 backdrop-blur-sm transition-all duration-300 pointer-events-none opacity-0">
-        <div class="flex flex-col items-center gap-3">
-            <div class="loader-spinner w-10 h-10 border-4 border-slate-200 border-t-primary-600 rounded-full"></div>
-            <p class="text-sm font-semibold text-slate-600">LMS channel connect ho raha hai...</p>
+    <!-- Global Loader -->
+    <div id="loader-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity duration-300 pointer-events-none opacity-0">
+        <div class="flex flex-col items-center gap-4 bg-white p-6 rounded-2xl shadow-xl border border-slate-100">
+            <div class="loader-spinner w-12 h-12 border-4 border-slate-100 border-t-primary-600 rounded-full"></div>
+            <p class="text-sm font-extrabold text-slate-700 tracking-wider uppercase">Loading...</p>
         </div>
     </div>
 
-    <!-- Customized Toast alert container -->
-    <div id="toast-wrapper" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm w-full px-4 md:px-0 pointer-events-none"></div>
+    <!-- Toast Alerts -->
+    <div id="toast-wrapper" class="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm w-full px-4 md:px-0 pointer-events-none"></div>
 
-    <!-- Custom Delete Confirmation modal box -->
-    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 p-6 transform transition duration-200 scale-95 opacity-0 animate-scale" id="confirm-modal-box">
-            <h3 class="text-lg font-bold text-slate-900">Batch delete karein?</h3>
-            <p class="text-sm text-slate-500 mt-2">Kya aap waqai is batch course ko apni list se hatana chahte hain?</p>
-            <div class="flex items-center justify-end gap-3 mt-6">
-                <button id="modal-cancel-btn" class="px-4 py-2 text-sm font-semibold rounded-lg text-slate-700 bg-slate-100 hover:bg-slate-200 transition">Cancel</button>
-                <button id="modal-confirm-btn" class="px-4 py-2 text-sm font-semibold rounded-lg text-white bg-red-600 hover:bg-red-700 shadow-sm transition">Delete Karein</button>
+    <!-- Delete Modal -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl max-w-sm w-full shadow-2xl p-6 transform transition duration-200 scale-95 opacity-0" id="confirm-modal-box">
+            <h3 class="text-xl font-extrabold text-slate-900">Batch Delete Karein?</h3>
+            <p class="text-sm font-semibold text-slate-500 mt-2">Kya aap waqai is batch ko my batches se hatana chahte hain?</p>
+            <div class="flex items-center justify-end gap-3 mt-8">
+                <button id="modal-cancel-btn" class="px-5 py-2.5 text-sm font-bold rounded-xl text-slate-600 bg-slate-100 hover:bg-slate-200 transition">Cancel</button>
+                <button id="modal-confirm-btn" class="px-5 py-2.5 text-sm font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/30 transition">Delete</button>
             </div>
         </div>
     </div>
 
-    <!-- Client-side Logic (Uses pure strings to bypass escaping issues) -->
     <script>
-        // Global dynamic state variable representation
         var state = {
-            currentTab: 'batches',
             myBatches: [],
             selectedCourseId: null,
-            selectedCourseName: null,
             categories: [],
-            courseCategories: [],
+            courseCategories: [], // syllabus chapters
             lessons: [],
             activeCategoryId: null,
             activeSubCategoryId: null
@@ -525,601 +338,387 @@ const HTML_PAGE = `<!DOCTYPE html>
 
         window.addEventListener('DOMContentLoaded', function() {
             initStorage();
-            bindGlobalEvents();
+            bindEvents();
             routeHandler();
             window.addEventListener('hashchange', routeHandler);
         });
 
-        // Sync items cleanly with browser storage
         function initStorage() {
-            var localData = localStorage.getItem('ta_my_batches');
+            var localData = localStorage.getItem('ta_batches_pro');
             if (localData) {
-                try {
-                    state.myBatches = JSON.parse(localData);
-                } catch (e) {
-                    state.myBatches = [];
-                }
-            } else {
-                state.myBatches = [];
+                try { state.myBatches = JSON.parse(localData); } catch (e) { state.myBatches = []; }
             }
-            updateTabBadges();
+            updateBadges();
         }
 
         function saveStorage() {
-            localStorage.setItem('ta_my_batches', JSON.stringify(state.myBatches));
-            updateTabBadges();
+            localStorage.setItem('ta_batches_pro', JSON.stringify(state.myBatches));
+            updateBadges();
         }
 
-        function bindGlobalEvents() {
-            var mBatches = document.getElementById('mobile-nav-batches');
-            if (mBatches) {
-                mBatches.addEventListener('click', function() {
-                    window.location.hash = '#/batches';
-                });
-            }
-            var mAll = document.getElementById('mobile-nav-all');
-            if (mAll) {
-                mAll.addEventListener('click', function() {
-                    window.location.hash = '#/all';
-                });
-            }
-            var searchInp = document.getElementById('workspace-search-input');
+        function bindEvents() {
+            var searchInp = document.getElementById('lessons-search');
             if (searchInp) {
                 searchInp.addEventListener('input', function(e) {
-                    renderFilteredLessons(e.target.value.trim());
+                    renderLessons(e.target.value.trim());
                 });
             }
         }
 
-        // Router controls state flow from url
+        // --- NEW PAGE ROUTING LOGIC ---
         async function routeHandler() {
             var hash = window.location.hash || '#/batches';
             var parts = hash.split('/');
             
-            var searchBar = document.getElementById('workspace-search-input');
-            if (searchBar) {
-                searchBar.value = '';
-            }
+            // Clean UI Search
+            var searchBar = document.getElementById('lessons-search');
+            if (searchBar) searchBar.value = '';
 
-            document.querySelectorAll('.tab-link').forEach(function(el) {
-                el.classList.remove('active-tab');
-            });
-            var mobBatches = document.getElementById('mobile-nav-batches');
-            var mobAll = document.getElementById('mobile-nav-all');
-            if (mobBatches) mobBatches.classList.remove('text-primary-600');
-            if (mobAll) mobAll.classList.remove('text-primary-600');
+            // Reset Navigation Styles
+            document.querySelectorAll('.tab-link').forEach(function(el) { el.classList.remove('active-tab'); });
+            var mobB = document.getElementById('mobile-nav-batches');
+            var mobA = document.getElementById('mobile-nav-all');
+            if(mobB) { mobB.classList.remove('text-primary-600'); mobB.classList.add('text-slate-400'); }
+            if(mobA) { mobA.classList.remove('text-primary-600'); mobA.classList.add('text-slate-400'); }
 
-            document.getElementById('section-batches').classList.add('hidden');
-            document.getElementById('section-all').classList.add('hidden');
-            document.getElementById('section-batch-detail').classList.add('hidden');
+            // Hide All Views
+            document.querySelectorAll('.section-view').forEach(function(el) { el.classList.remove('active-view'); });
 
+            // Router Switch
             if (parts[1] === 'batches') {
-                state.currentTab = 'batches';
-                var btnB = document.getElementById('nav-btn-batches');
-                if (btnB) btnB.classList.add('active-tab');
-                if (mobBatches) mobBatches.classList.add('text-primary-600');
-                document.getElementById('section-batches').classList.remove('hidden');
+                document.getElementById('nav-btn-batches')?.classList.add('active-tab');
+                if(mobB) { mobB.classList.add('text-primary-600'); mobB.classList.remove('text-slate-400'); }
+                document.getElementById('view-batches').classList.add('active-view');
                 renderMyBatches();
             } 
             else if (parts[1] === 'all') {
-                state.currentTab = 'all';
-                var btnA = document.getElementById('nav-btn-all');
-                if (btnA) btnA.classList.add('active-tab');
-                if (mobAll) mobAll.classList.add('text-primary-600');
-                document.getElementById('section-all').classList.remove('hidden');
-                await loadCatalogCategories();
-            } 
+                document.getElementById('nav-btn-all')?.classList.add('active-tab');
+                if(mobA) { mobA.classList.add('text-primary-600'); mobA.classList.remove('text-slate-400'); }
+                document.getElementById('view-all-categories').classList.add('active-view');
+                await loadAllCategories();
+            }
+            else if (parts[1] === 'category' && parts[2]) {
+                document.getElementById('nav-btn-all')?.classList.add('active-tab');
+                if(mobA) { mobA.classList.add('text-primary-600'); mobA.classList.remove('text-slate-400'); }
+                document.getElementById('view-category-courses').classList.add('active-view');
+                await loadCategoryCourses(parts[2]);
+            }
             else if (parts[1] === 'batch' && parts[2]) {
-                state.currentTab = 'batches';
-                var btnB = document.getElementById('nav-btn-batches');
-                if (btnB) btnB.classList.add('active-tab');
-                if (mobBatches) mobBatches.classList.add('text-primary-600');
-                document.getElementById('section-batch-detail').classList.remove('hidden');
-                
-                var courseId = parts[2];
-                var catId = parts[3] || null;
-                var subCatId = parts[4] || null;
-                await openBatchSyllabus(courseId, catId, subCatId);
+                document.getElementById('nav-btn-batches')?.classList.add('active-tab');
+                if(mobB) { mobB.classList.add('text-primary-600'); mobB.classList.remove('text-slate-400'); }
+                document.getElementById('view-batch-syllabus').classList.add('active-view');
+                await loadBatchSyllabus(parts[2]);
+            }
+            else if (parts[1] === 'lessons' && parts[2] && parts[3] && parts[4]) {
+                document.getElementById('nav-btn-batches')?.classList.add('active-tab');
+                if(mobB) { mobB.classList.add('text-primary-600'); mobB.classList.remove('text-slate-400'); }
+                document.getElementById('view-topic-lessons').classList.add('active-view');
+                await loadTopicLessons(parts[2], parts[3], parts[4]);
             }
         }
 
-        // Loader operations
-        function setLoaderState(isActive) {
+        function setLoader(isActive) {
             var overlay = document.getElementById('loader-overlay');
-            if (overlay) {
-                if (isActive) {
-                    overlay.classList.remove('pointer-events-none', 'opacity-0');
-                    overlay.classList.add('opacity-100');
-                } else {
-                    overlay.classList.remove('opacity-100');
-                    overlay.classList.add('pointer-events-none', 'opacity-0');
-                }
+            if (!overlay) return;
+            if (isActive) {
+                overlay.classList.remove('pointer-events-none', 'opacity-0');
+                overlay.classList.add('opacity-100');
+            } else {
+                overlay.classList.remove('opacity-100');
+                overlay.classList.add('pointer-events-none', 'opacity-0');
             }
         }
 
-        // Elegant alerts
-        function showToast(message, type) {
-            var toastType = type || 'success';
+        function showToast(msg, type) {
             var wrapper = document.getElementById('toast-wrapper');
             if (!wrapper) return;
             var id = 'toast_' + Date.now();
-
-            var colorStyles = 'bg-emerald-600 text-white';
-            if (toastType === 'warning') colorStyles = 'bg-amber-500 text-white';
-            if (toastType === 'error') colorStyles = 'bg-red-600 text-white';
-
-            var iconMarkup = '';
-            if (toastType === 'success') {
-                iconMarkup = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
-            } else {
-                iconMarkup = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
-            }
-
-            var toastHtml = '<div id="' + id + '" class="flex items-center p-4 rounded-xl shadow-xl border border-white/10 ' + colorStyles + ' transform translate-y-2 opacity-0 transition duration-300 pointer-events-auto">' +
-                iconMarkup + '<span class="text-xs font-semibold">' + message + '</span></div>';
-
-            wrapper.insertAdjacentHTML('beforeend', toastHtml);
+            var bg = (type === 'error') ? 'bg-red-600' : (type === 'warning' ? 'bg-amber-500' : 'bg-slate-900');
+            var html = '<div id="' + id + '" class="flex items-center p-4 rounded-2xl shadow-xl ' + bg + ' text-white transform translate-y-4 opacity-0 transition-all duration-300 pointer-events-auto">' +
+                '<span class="text-sm font-bold tracking-wide">' + msg + '</span></div>';
+            wrapper.insertAdjacentHTML('beforeend', html);
             
-            var toastElement = document.getElementById(id);
-            setTimeout(function() {
-                if (toastElement) toastElement.classList.remove('translate-y-2', 'opacity-0');
-            }, 50);
-
-            setTimeout(function() {
-                if (toastElement) {
-                    toastElement.classList.add('translate-y-2', 'opacity-0');
-                    setTimeout(function() {
-                        toastElement.remove();
-                    }, 300);
-                }
-            }, 3500);
+            setTimeout(function() { document.getElementById(id)?.classList.remove('translate-y-4', 'opacity-0'); }, 50);
+            setTimeout(function() { 
+                var el = document.getElementById(id);
+                if(el) { el.classList.add('translate-y-4', 'opacity-0'); setTimeout(function(){el.remove();},300); }
+            }, 3000);
         }
 
-        function updateTabBadges() {
-            var badges = document.getElementById('batches-count-badge');
-            if (badges) {
-                badges.innerText = state.myBatches.length;
-            }
+        function updateBadges() {
+            var bdg = document.getElementById('batches-count-badge');
+            if (bdg) bdg.innerText = state.myBatches.length;
         }
 
-        // --- SECTION MY BATCHES RENDER ENGINE ---
+        // --- VIEW 1: MY BATCHES ---
         function renderMyBatches() {
             var grid = document.getElementById('batches-grid');
-            var emptyPlaceholder = document.getElementById('batches-empty-placeholder');
-            if (!grid || !emptyPlaceholder) return;
+            var empty = document.getElementById('batches-empty');
             grid.innerHTML = '';
-
-            if (state.myBatches.length === 0) {
-                emptyPlaceholder.classList.remove('hidden');
-                return;
-            }
-            emptyPlaceholder.classList.add('hidden');
+            if (state.myBatches.length === 0) { empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
 
             state.myBatches.forEach(function(batch) {
-                var card = '<article class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between hover-card-trigger relative">' +
-                    '<div class="relative aspect-video-box">' +
-                    '<img src="' + batch.thumbnail + '" alt="' + batch.courseName + '" class="w-full h-full object-cover" onerror="this.src=\\'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80\\'"> ' +
-                    '<span class="absolute top-3 left-3 bg-primary-600/90 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-sm">ACTIVE BATCH</span>' +
+                var card = '<div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col hover-card-trigger">' +
+                    '<div class="relative aspect-video-box bg-slate-100">' +
+                    '<img src="' + batch.thumbnail + '" class="w-full h-full object-cover" onerror="this.src=\\'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80\\'"> ' +
+                    '<span class="absolute top-4 left-4 bg-primary-600 text-white text-[10px] font-black tracking-widest px-3 py-1.5 rounded-lg shadow-md uppercase">Enrolled</span>' +
                     '</div>' +
-                    '<div class="p-5 flex-grow flex flex-col justify-between gap-4">' +
-                    '<div>' +
-                    '<h3 class="text-base font-bold text-slate-900 line-clamp-2">' + batch.courseName + '</h3>' +
-                    '<p class="text-xs font-semibold text-primary-500 mt-1">₹ ' + batch.price + '</p>' +
-                    '</div>' +
-                    '<div class="flex items-center gap-2 mt-auto">' +
-                    '<a href="#/batch/' + batch.courseId + '" class="flex-grow inline-flex items-center justify-center px-4 py-2 text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg shadow-sm transition">' +
-                    'Syllabus Open Karein' +
-                    '</a>' +
-                    '<button onclick="promptDeleteBatch(\\'' + batch.courseId + '\\')" title="Delete Course" class="p-2 border border-slate-200 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">' +
-                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>' +
-                    '</button>' +
-                    '</div>' +
-                    '</div>' +
-                    '</article>';
+                    '<div class="p-6 flex flex-col flex-grow">' +
+                    '<h3 class="text-lg font-extrabold text-slate-900 leading-tight mb-2">' + batch.courseName + '</h3>' +
+                    '<div class="mt-auto pt-4 flex gap-2">' +
+                    '<a href="#/batch/' + batch.courseId + '" class="flex-grow text-center px-4 py-3 text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-xl shadow-md shadow-primary-600/20 transition">Open Syllabus</a>' +
+                    '<button onclick="promptDelete(\\'' + batch.courseId + '\\')" class="px-4 py-3 border-2 border-slate-100 text-slate-400 hover:text-red-600 hover:border-red-100 hover:bg-red-50 rounded-xl transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>' +
+                    '</div></div></div>';
                 grid.insertAdjacentHTML('beforeend', card);
             });
         }
 
-        window.promptDeleteBatch = function(courseId) {
+        window.promptDelete = function(courseId) {
             var modal = document.getElementById('confirm-modal');
-            if (!modal) return;
             modal.classList.add('show');
+            var cancel = document.getElementById('modal-cancel-btn');
+            var confirm = document.getElementById('modal-confirm-btn');
 
-            var cancelBtn = document.getElementById('modal-cancel-btn');
-            var confirmBtn = document.getElementById('modal-confirm-btn');
-
-            var cleanModal = function() {
-                modal.classList.remove('show');
-                cancelBtn.removeEventListener('click', onCancel);
-                confirmBtn.removeEventListener('click', onConfirm);
-            };
-
-            var onCancel = function() { cleanModal(); };
+            var clean = function() { modal.classList.remove('show'); cancel.removeEventListener('click', onCancel); confirm.removeEventListener('click', onConfirm); };
+            var onCancel = function() { clean(); };
             var onConfirm = function() {
-                state.myBatches = state.myBatches.filter(function(b) {
-                    return String(b.courseId) !== String(courseId);
-                });
+                state.myBatches = state.myBatches.filter(function(b) { return String(b.courseId) !== String(courseId); });
                 saveStorage();
-                showToast('Batch list se hata diya gaya.', 'warning');
-                cleanModal();
+                showToast('Batch removed', 'warning');
+                clean();
                 routeHandler();
             };
-
-            cancelBtn.addEventListener('click', onCancel);
-            confirmBtn.addEventListener('click', onConfirm);
+            cancel.addEventListener('click', onCancel);
+            confirm.addEventListener('click', onConfirm);
         };
 
-        // --- SECTION ALL COURSES RENDER ENGINE ---
-        async function loadCatalogCategories() {
-            if (state.categories.length > 0) {
-                renderCategoryFilter();
-                return;
+        // --- VIEW 2: ALL CATEGORIES (LINE-WISE PRO CARDS) ---
+        async function loadAllCategories() {
+            var container = document.getElementById('categories-list');
+            if (state.categories.length === 0) {
+                setLoader(true);
+                try {
+                    var res = await fetch('/api/categories');
+                    var json = await res.json();
+                    state.categories = json?.data?.courseCategory || [];
+                } catch(e) { showToast('Error loading categories', 'error'); }
+                setLoader(false);
             }
-
-            setLoaderState(true);
-            try {
-                var res = await fetch('/api/categories');
-                var json = await res.json();
-                state.categories = json?.data?.courseCategory || [];
-                renderCategoryFilter();
-            } catch (err) {
-                showToast('Streams load karne me samasya aayi', 'error');
-            } finally {
-                setLoaderState(false);
-            }
-        }
-
-        function renderCategoryFilter() {
-            var container = document.getElementById('catalog-categories-container');
-            if (!container) return;
+            
             container.innerHTML = '';
-
             state.categories.forEach(function(cat) {
-                var isActive = String(state.activeCategoryId) === String(cat.categoryId);
-                var buttonClass = isActive 
-                    ? 'bg-primary-600 text-white shadow-sm border-transparent' 
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50';
-
-                var pill = '<button onclick="selectCatalogCategory(\\'' + cat.categoryId + '\\')" class="px-4 py-2 border rounded-full text-xs font-semibold transition ' + buttonClass + '">' +
-                    cat.courseCategory + '</button>';
-                container.insertAdjacentHTML('beforeend', pill);
-            });
-        }
-
-        window.selectCatalogCategory = async function(catId) {
-            state.activeCategoryId = catId;
-            renderCategoryFilter();
-            var welcomePH = document.getElementById('catalog-welcome-placeholder');
-            if (welcomePH) welcomePH.classList.add('hidden');
-            
-            var grid = document.getElementById('catalog-grid');
-            if (!grid) return;
-            
-            // Loading Skeletons Setup
-            grid.innerHTML = '<div class="animate-pulse bg-white border border-slate-100 rounded-2xl overflow-hidden h-72 p-4 flex flex-col justify-between">' +
-                '<div class="bg-slate-200 h-32 rounded-lg w-full mb-4"></div>' +
-                '<div class="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>' +
-                '<div class="h-3 bg-slate-200 rounded w-1/2 mb-4"></div>' +
-                '<div class="h-8 bg-slate-200 rounded w-full"></div>' +
-                '</div>';
-
-            try {
-                var res = await fetch('/api/courses?categoryId=' + catId);
-                var json = await res.json();
-                
-                var originalCourses = [];
-                if (json?.data?.candidateCourseList) {
-                    originalCourses = json.data.candidateCourseList;
-                } else if (json?.data?.layout?.[0]?.content) {
-                    originalCourses = json.data.layout[0].content;
-                }
-
-                var parsedCourses = originalCourses.map(function(item) {
-                    return {
-                        courseId: String(item.courseId || item.id),
-                        courseName: item.courseName || item.title || "Unnamed Course",
-                        price: item.price || "Free",
-                        thumbnail: item.cThumb || item.cthumb || item.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80"
-                    };
-                });
-
-                renderCatalogGrid(parsedCourses);
-            } catch (err) {
-                showToast('Stream databases se connection toot gaya', 'error');
-                grid.innerHTML = '';
-            }
-        };
-
-        function renderCatalogGrid(courses) {
-            var grid = document.getElementById('catalog-grid');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            if (courses.length === 0) {
-                grid.innerHTML = '<div class="col-span-full py-12 flex flex-col items-center text-slate-400 text-center">' +
-                    '<svg class="w-12 h-12 mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>' +
-                    '<p class="text-sm font-semibold">Koi active batch is stream me nahi mila.</p></div>';
-                return;
-            }
-
-            courses.forEach(function(course) {
-                var isEnrolled = state.myBatches.some(function(b) {
-                    return String(b.courseId) === String(course.courseId);
-                });
-                
-                var actionBtn = '';
-                if (isEnrolled) {
-                    actionBtn = '<button disabled class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 border border-slate-200 text-xs font-semibold text-slate-400 bg-slate-50 rounded-lg cursor-not-allowed">' +
-                        '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>' +
-                        'Added In Batches</button>';
-                } else {
-                    actionBtn = '<button onclick="enrollIntoBatches(\\'' + encodeURIComponent(JSON.stringify(course)) + '\\')" class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg shadow-sm transition">' +
-                        'Batches me Add Karein</button>';
-                }
-
-                var card = '<article class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between hover-card-trigger">' +
-                    '<div class="relative aspect-video-box bg-slate-100">' +
-                    '<img src="' + course.thumbnail + '" alt="' + course.courseName + '" class="w-full h-full object-cover" onerror="this.src=\\'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80\\'"></div>' +
-                    '<div class="p-5 flex-grow flex flex-col justify-between gap-4">' +
-                    '<div><h3 class="text-sm font-bold text-slate-900 line-clamp-2">' + course.courseName + '</h3>' +
-                    '<p class="text-xs font-bold text-emerald-600 mt-1">₹ ' + course.price + '</p></div>' +
-                    '<div class="mt-auto pt-2">' + actionBtn + '</div></div></article>';
-                grid.insertAdjacentHTML('beforeend', card);
-            });
-        }
-
-        window.enrollIntoBatches = function(encodedStr) {
-            var course = JSON.parse(decodeURIComponent(encodedStr));
-            var alreadyExists = state.myBatches.some(function(b) {
-                return String(b.courseId) === String(course.courseId);
-            });
-
-            if (alreadyExists) {
-                showToast('Pehle se add kiya hua batch hai.', 'warning');
-                return;
-            }
-
-            state.myBatches.push(course);
-            saveStorage();
-            showToast('Batch successfully add ho gaya!');
-            selectCatalogCategory(state.activeCategoryId);
-        };
-
-        // --- SECTION SYLLABUS DETAIL CONTROLLERS ---
-        async function openBatchSyllabus(courseId, initialCatId, initialSubCatId) {
-            state.selectedCourseId = courseId;
-            var currentBatch = state.myBatches.find(function(b) {
-                return String(b.courseId) === String(courseId);
-            });
-            var courseTitle = currentBatch ? currentBatch.courseName : "Class Batch Study";
-            
-            document.getElementById('detail-breadcrumb-course-name').innerText = courseTitle;
-            document.getElementById('detail-course-title').innerText = courseTitle;
-
-            document.getElementById('workspace-topic-name').innerText = "Topic select karein";
-            document.getElementById('workspace-topic-stat').innerText = "Left panel me se chapter chunayein.";
-            var selPH = document.getElementById('workspace-selection-placeholder');
-            if (selPH) selPH.classList.remove('hidden');
-            var empPH = document.getElementById('workspace-empty-placeholder');
-            if (empPH) empPH.classList.add('hidden');
-            
-            var lessonsList = document.getElementById('lessons-list');
-            if (lessonsList) lessonsList.innerHTML = '';
-
-            setLoaderState(true);
-            try {
-                var res = await fetch('/api/course-categories?courseId=' + courseId);
-                var json = await res.json();
-                
-                var categories = [];
-                var list = json?.data?.categoryList || [];
-                
-                list.forEach(function(c) {
-                    var subCategories = (c.subCategory || []).map(function(s) {
-                        return {
-                            subCategoryId: s.subCategoryId,
-                            subCategoryName: s.subCategory
-                        };
-                    });
-                    categories.push({
-                        categoryId: c.id,
-                        categoryName: c.categoryName,
-                        subCategories: subCategories
-                    });
-                });
-
-                state.courseCategories = categories;
-                renderSyllabusAccordion(initialCatId, initialSubCatId);
-
-                if (initialCatId && initialSubCatId) {
-                    await selectTopicLesson(initialCatId, initialSubCatId);
-                }
-            } catch (err) {
-                showToast('Syllabus load karne me rukawat aayi', 'error');
-            } finally {
-                setLoaderState(false);
-            }
-        }
-
-        function renderSyllabusAccordion(initialCatId, initialSubCatId) {
-            var container = document.getElementById('syllabus-chapters-list');
-            if (!container) return;
-            container.innerHTML = '';
-
-            if (state.courseCategories.length === 0) {
-                container.innerHTML = '<p class="text-xs font-semibold text-slate-400 p-2">Syllabus abhi publish nahi hua hai.</p>';
-                return;
-            }
-
-            state.courseCategories.forEach(function(cat) {
-                var isAccordionActive = initialCatId && String(cat.categoryId) === String(initialCatId);
-                var activeClass = isAccordionActive ? 'active' : '';
-
-                var sublist = '';
-                cat.subCategories.forEach(function(sub) {
-                    var isSubActive = initialSubCatId && String(sub.subCategoryId) === String(initialSubCatId);
-                    var activeItemStyle = isSubActive 
-                        ? 'bg-primary-50 text-primary-600 border-l-4 border-primary-600 pl-3 font-semibold' 
-                        : 'text-slate-600 hover:bg-slate-50 pl-4 hover:text-slate-900';
-
-                    sublist += '<button onclick="triggerSelectTopic(\\'' + cat.categoryId + '\\', \\'' + sub.subCategoryId + '\\')" class="w-full text-left py-2 pr-3 text-xs rounded-r-md transition ' + activeItemStyle + '">' +
-                        sub.subCategoryName + '</button>';
-                });
-
-                var item = '<div id="accordion_item_' + cat.categoryId + '" class="accordion-item border border-slate-100 rounded-xl overflow-hidden ' + activeClass + '">' +
-                    '<button onclick="toggleAccordion(\\'' + cat.categoryId + '\\')" class="accordion-header w-full flex items-center justify-between p-3 bg-slate-50/70 hover:bg-slate-50 transition">' +
-                    '<span class="text-xs font-bold text-slate-700 text-left line-clamp-1">' + cat.categoryName + '</span>' +
-                    '<svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>' +
-                    '</button>' +
-                    '<div class="accordion-content bg-white border-t border-slate-50"><div class="py-1 space-y-0.5">' +
-                    (sublist || '<p class="text-[10px] text-slate-400 p-3">No topics available.</p>') +
-                    '</div></div></div>';
-                container.insertAdjacentHTML('beforeend', item);
-            });
-        }
-
-        window.toggleAccordion = function(catId) {
-            var accordion = document.getElementById('accordion_item_' + catId);
-            if (accordion) {
-                if (accordion.classList.contains('active')) {
-                    accordion.classList.remove('active');
-                } else {
-                    accordion.classList.add('active');
-                }
-            }
-        };
-
-        window.triggerSelectTopic = function(catId, subCatId) {
-            window.location.hash = '#/batch/' + state.selectedCourseId + '/' + catId + '/' + subCatId;
-        };
-
-        async function selectTopicLesson(catId, subCatId) {
-            state.activeCategoryId = catId;
-            state.activeSubCategoryId = subCatId;
-
-            var resolvedCat = state.courseCategories.find(function(c) {
-                return String(c.categoryId) === String(catId);
-            });
-            var resolvedSub = resolvedCat ? resolvedCat.subCategories.find(function(s) {
-                return String(s.subCategoryId) === String(subCatId);
-            }) : null;
-            
-            var topicTitle = resolvedSub ? resolvedSub.subCategoryName : "Syllabus Topic";
-            var parentTitle = resolvedCat ? resolvedCat.categoryName : "Category";
-
-            document.getElementById('workspace-topic-name').innerText = topicTitle;
-            document.getElementById('workspace-topic-stat').innerText = parentTitle + ' ➤ ' + topicTitle;
-            
-            var selPH = document.getElementById('workspace-selection-placeholder');
-            if (selPH) selPH.classList.add('hidden');
-            var empPH = document.getElementById('workspace-empty-placeholder');
-            if (empPH) empPH.classList.add('hidden');
-
-            var lessonsGrid = document.getElementById('lessons-list');
-            if (!lessonsGrid) return;
-
-            // Lesson Skeletons
-            lessonsGrid.innerHTML = '<div class="animate-pulse bg-white border border-slate-100 rounded-xl p-4 flex gap-4 h-32">' +
-                '<div class="bg-slate-200 w-28 rounded-lg shrink-0 h-full"></div>' +
-                '<div class="flex-grow space-y-2 py-1"><div class="h-3 bg-slate-200 rounded w-1/4"></div>' +
-                '<div class="h-4 bg-slate-200 rounded w-3/4"></div>' +
-                '<div class="h-3 bg-slate-200 rounded w-1/2 mt-auto"></div></div></div>';
-
-            try {
-                var res = await fetch('/api/videos?courseId=' + state.selectedCourseId + '&categoryId=' + catId + '&subCategoryId=' + subCatId);
-                var json = await res.json();
-                var list = json?.data?.courseVideo || [];
-                
-                state.lessons = list.slice().reverse();
-                renderFilteredLessons('');
-            } catch (err) {
-                showToast('Lessons sync fail ho gaya', 'error');
-                lessonsGrid.innerHTML = '';
-            }
-        }
-
-        function renderFilteredLessons(filterQuery) {
-            var container = document.getElementById('lessons-list');
-            if (!container) return;
-            container.innerHTML = '';
-
-            var cleanQuery = filterQuery.toLowerCase();
-            var listToRender = state.lessons.filter(function(item) {
-                return item.title && item.title.toLowerCase().indexOf(cleanQuery) !== -1;
-            });
-
-            var empPH = document.getElementById('workspace-empty-placeholder');
-            if (listToRender.length === 0) {
-                if (empPH) empPH.classList.remove('hidden');
-                return;
-            }
-            if (empPH) empPH.classList.add('hidden');
-
-            listToRender.forEach(function(lesson) {
-                var videoUrl = lesson.url || lesson.Url || '';
-                var pdfUrl = lesson.pdfUrl || '';
-                var formattedDate = formatDateString(lesson.eventDateTime);
-
-                var yId = getYoutubeId(videoUrl);
-                var thumbUrl = yId 
-                    ? 'https://img.youtube.com/vi/' + yId + '/hqdefault.jpg'
-                    : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&q=80';
-
-                var actionVideo = '';
-                if (videoUrl) {
-                    actionVideo = '<a href="' + videoUrl + '" target="_blank" class="flex-grow inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition">' +
-                        '<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" /></svg>' +
-                        'Video Dekhein</a>';
-                }
-
-                var actionPdf = '';
-                if (pdfUrl) {
-                    actionPdf = '<a href="' + pdfUrl + '" target="_blank" class="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg border border-primary-200 transition">' +
-                        '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253" /></svg>' +
-                        'PDF Open Karein</a>';
-                }
-
-                var noteBadge = pdfUrl ? '<span class="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded uppercase">BOARD PDF</span>' : '';
-
-                var card = '<article class="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm hover:border-slate-200 transition-colors flex flex-col md:flex-row gap-4 p-4">' +
-                    '<div class="relative w-full md:w-32 shrink-0 rounded-lg overflow-hidden bg-slate-50 aspect-video md:aspect-auto md:h-full">' +
-                    '<img src="' + thumbUrl + '" alt="Thumbnail" class="w-full h-full object-cover">' +
-                    (videoUrl ? '<div class="absolute inset-0 flex items-center justify-center bg-black/25"><span class="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-red-600 shadow-sm"><svg class="w-4 h-4 fill-current pl-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></span></div>' : '') +
-                    '</div>' +
-                    '<div class="flex-grow flex flex-col justify-between gap-3 py-0.5">' +
-                    '<div><div class="flex flex-wrap items-center gap-2"><span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded uppercase">LESSON</span>' +
-                    noteBadge + '</div>' +
-                    '<h4 class="text-sm font-bold text-slate-900 mt-1.5 line-clamp-2">' + lesson.title + '</h4></div>' +
-                    '<div class="flex items-center justify-between gap-4">' +
-                    '<span class="text-[10px] font-medium text-slate-500 shrink-0">' + formattedDate + '</span>' +
-                    '<div class="flex items-center gap-1.5 justify-end w-full">' + actionVideo + actionPdf + '</div></div></div>' +
-                    '</article>';
+                var card = '<a href="#/category/' + cat.categoryId + '" class="group flex items-center justify-between p-5 bg-white border-2 border-slate-100 rounded-2xl hover:border-primary-500 hover:shadow-lg hover:shadow-primary-500/10 transition-all">' +
+                    '<span class="font-extrabold text-slate-800 text-sm tracking-wide uppercase">' + cat.courseCategory + '</span>' +
+                    '<div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-primary-50 transition">' +
+                    '<svg class="w-5 h-5 text-slate-400 group-hover:text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>' +
+                    '</div></a>';
                 container.insertAdjacentHTML('beforeend', card);
             });
         }
 
-        // --- UTILS ---
-        function getYoutubeId(url) {
-            if (!url) return null;
-            var regExp = /^.*(youtu.be\\/|v\\/|u\\/\\w\\/|embed\\/|watch\\?v=|&v=)([^#&?]*).*/;
-            var match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
+        // --- VIEW 3: CATEGORY COURSES ---
+        async function loadCategoryCourses(catId) {
+            var grid = document.getElementById('catalog-grid');
+            grid.innerHTML = '';
+            
+            var catName = "Courses";
+            var found = state.categories.find(function(c) { return String(c.categoryId) === String(catId); });
+            if(found) catName = found.courseCategory;
+            document.getElementById('cat-courses-title').innerText = catName;
+
+            setLoader(true);
+            try {
+                var res = await fetch('/api/courses?categoryId=' + catId);
+                var json = await res.json();
+                var rawList = json?.data?.candidateCourseList || json?.data?.layout?.[0]?.content || [];
+                
+                if (rawList.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full py-16 text-center text-slate-400 font-bold uppercase tracking-widest">No Active Batches Here</div>';
+                } else {
+                    rawList.forEach(function(item) {
+                        var course = {
+                            courseId: String(item.courseId || item.id),
+                            courseName: item.courseName || item.title || "Unnamed",
+                            price: item.price || "Free",
+                            thumbnail: item.cThumb || item.cthumb || item.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80"
+                        };
+                        var isEn = state.myBatches.some(function(b) { return String(b.courseId) === String(course.courseId); });
+                        
+                        var btn = isEn ? '<button disabled class="w-full py-3 bg-slate-100 text-slate-400 font-bold rounded-xl cursor-not-allowed">Added in Batches</button>'
+                                       : '<button onclick="enrollBatch(\\'' + encodeURIComponent(JSON.stringify(course)) + '\\')" class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-md transition">Add to My Batches</button>';
+
+                        var card = '<div class="bg-white border border-slate-200 rounded-3xl overflow-hidden flex flex-col hover-card-trigger">' +
+                            '<div class="aspect-video-box bg-slate-100"><img src="' + course.thumbnail + '" class="w-full h-full object-cover"></div>' +
+                            '<div class="p-5 flex flex-col flex-grow">' +
+                            '<h3 class="text-base font-extrabold text-slate-900 leading-tight mb-2">' + course.courseName + '</h3>' +
+                            '<p class="text-lg font-black text-emerald-600 mb-4">₹ ' + course.price + '</p>' +
+                            '<div class="mt-auto">' + btn + '</div></div></div>';
+                        grid.insertAdjacentHTML('beforeend', card);
+                    });
+                }
+            } catch(e) { showToast('Error loading courses', 'error'); }
+            setLoader(false);
         }
 
-        function formatDateString(dateStr) {
-            if (!dateStr) return '';
+        window.enrollBatch = function(enc) {
+            var c = JSON.parse(decodeURIComponent(enc));
+            if (state.myBatches.some(function(b) { return String(b.courseId) === String(c.courseId); })) return;
+            state.myBatches.push(c);
+            saveStorage();
+            showToast('Added to My Batches successfully');
+            // Refresh to update button states
+            var hash = window.location.hash.split('/');
+            loadCategoryCourses(hash[2]);
+        };
+
+        // --- VIEW 4: BATCH SYLLABUS INDEX ---
+        async function loadBatchSyllabus(courseId) {
+            state.selectedCourseId = courseId;
+            var current = state.myBatches.find(function(b) { return String(b.courseId) === String(courseId); });
+            if (current) document.getElementById('syllabus-course-title').innerText = current.courseName;
+
+            var container = document.getElementById('syllabus-chapters-list');
+            container.innerHTML = '';
+            setLoader(true);
+            
             try {
-                var parts = dateStr.trim().split(' ');
-                if (parts.length > 0) {
-                    var dateParts = parts[0].split('-');
-                    if (dateParts.length === 3) {
-                        return dateParts[2] + '-' + dateParts[1] + '-' + dateParts[0];
-                    }
+                var res = await fetch('/api/course-categories?courseId=' + courseId);
+                var json = await res.json();
+                var list = json?.data?.categoryList || [];
+                state.courseCategories = list.map(function(c) {
+                    return {
+                        id: c.id, name: c.categoryName,
+                        subs: (c.subCategory || []).map(function(s) { return { id: s.subCategoryId, name: s.subCategory }; })
+                    };
+                });
+
+                if (state.courseCategories.length === 0) {
+                    container.innerHTML = '<div class="p-8 text-center text-slate-400 font-bold uppercase">Syllabus Not Available</div>';
+                } else {
+                    state.courseCategories.forEach(function(cat) {
+                        var sublist = '';
+                        cat.subs.forEach(function(sub) {
+                            sublist += '<button onclick="window.location.hash=\\'#/lessons/' + courseId + '/' + cat.id + '/' + sub.id + '\\'" class="w-full text-left p-4 border-b border-slate-100 last:border-0 hover:bg-primary-50 transition flex items-center justify-between group">' +
+                                '<span class="text-sm font-extrabold text-slate-700 group-hover:text-primary-700 uppercase tracking-wide">' + sub.name + '</span>' +
+                                '<svg class="w-5 h-5 text-slate-300 group-hover:text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>' +
+                                '</button>';
+                        });
+
+                        var acc = '<div id="acc_' + cat.id + '" class="accordion-item bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden">' +
+                            '<button onclick="toggleAcc(\\'' + cat.id + '\\')" class="accordion-header w-full flex items-center justify-between p-5 hover:bg-slate-100 transition">' +
+                            '<span class="text-base font-black text-slate-900 uppercase tracking-wide">' + cat.name + '</span>' +
+                            '<svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>' +
+                            '</button>' +
+                            '<div class="accordion-content bg-white border-t border-slate-200">' + (sublist || '<div class="p-4 text-xs font-bold text-slate-400">Empty</div>') + '</div></div>';
+                        container.insertAdjacentHTML('beforeend', acc);
+                    });
                 }
-                return dateStr;
-            } catch (err) {
-                return dateStr;
+            } catch(e) { showToast('Error loading syllabus', 'error'); }
+            setLoader(false);
+        }
+
+        window.toggleAcc = function(id) {
+            var el = document.getElementById('acc_' + id);
+            if (el) el.classList.toggle('active');
+        };
+
+        // --- VIEW 5: TOPIC LESSONS (NEW PAGE FOR VIDEOS) ---
+        window.goBackToSyllabus = function() {
+            window.location.hash = '#/batch/' + state.selectedCourseId;
+        };
+
+        async function loadTopicLessons(courseId, catId, subCatId) {
+            state.activeCategoryId = catId;
+            state.activeSubCategoryId = subCatId;
+            state.selectedCourseId = courseId;
+            
+            // Set Headers
+            var cName = "Subject"; var sName = "Topic";
+            var foundCat = state.courseCategories.find(function(c) { return String(c.id) === String(catId); });
+            if (foundCat) {
+                cName = foundCat.name;
+                var foundSub = foundCat.subs.find(function(s) { return String(s.id) === String(subCatId); });
+                if (foundSub) sName = foundSub.name;
             }
+            document.getElementById('lessons-parent-title').innerText = cName;
+            document.getElementById('lessons-topic-title').innerText = sName;
+
+            var container = document.getElementById('lessons-list');
+            container.innerHTML = '';
+            setLoader(true);
+
+            try {
+                var res = await fetch('/api/videos?courseId=' + courseId + '&categoryId=' + catId + '&subCategoryId=' + subCatId);
+                var json = await res.json();
+                state.lessons = (json?.data?.courseVideo || []).slice().reverse(); // Chronological
+                renderLessons('');
+            } catch(e) { showToast('Error loading videos', 'error'); }
+            setLoader(false);
+        }
+
+        window.markWatched = function(idx) {
+            // Remove highlight from all
+            document.querySelectorAll('.lesson-card').forEach(function(el) { el.classList.remove('active-lesson'); });
+            // Add to clicked
+            var clickedEl = document.getElementById('lesson_card_' + idx);
+            if (clickedEl) clickedEl.classList.add('active-lesson');
+            // Save state
+            localStorage.setItem('last_vid_' + state.selectedCourseId, idx);
+        };
+
+        function renderLessons(query) {
+            var container = document.getElementById('lessons-list');
+            var empty = document.getElementById('lessons-empty');
+            container.innerHTML = '';
+            
+            var q = query.toLowerCase();
+            var filtered = state.lessons.filter(function(l) { return (l.title || '').toLowerCase().indexOf(q) !== -1; });
+            
+            if (filtered.length === 0) { empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+
+            var lastWatchedIdx = localStorage.getItem('last_vid_' + state.selectedCourseId);
+
+            filtered.forEach(function(lesson, idx) {
+                var vid = lesson.url || lesson.Url || '';
+                var pdf = lesson.pdfUrl || '';
+                var date = (lesson.eventDateTime || '').split(' ')[0] || '';
+                
+                var thumb = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300&q=80';
+                if (vid) {
+                    var m = vid.match(/^.*(youtu.be\\/|v\\/|u\\/\\w\\/|embed\\/|watch\\?v=|&v=)([^#&?]*).*/);
+                    if (m && m[2].length === 11) thumb = 'https://img.youtube.com/vi/' + m[2] + '/hqdefault.jpg';
+                }
+
+                var activeCls = (String(lastWatchedIdx) === String(idx)) ? 'active-lesson' : '';
+                
+                // Clicking the thumbnail opens the video in a new tab & highlights it.
+                var mediaHTML = '';
+                if (vid) {
+                    mediaHTML = '<a href="' + vid + '" target="_blank" onclick="markWatched(\\'' + idx + '\\')" class="block relative w-full sm:w-48 shrink-0 bg-slate-100 aspect-video sm:aspect-auto sm:h-full overflow-hidden group">' +
+                        '<img src="' + thumb + '" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">' +
+                        '<div class="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/10 transition">' +
+                        '<div class="w-10 h-10 bg-white/95 rounded-full flex items-center justify-center text-red-600 shadow-lg group-hover:scale-110 transition"><svg class="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>' +
+                        '</div></a>';
+                } else {
+                    mediaHTML = '<div class="w-full sm:w-48 shrink-0 bg-slate-100 aspect-video sm:aspect-auto sm:h-full overflow-hidden"><img src="' + thumb + '" class="w-full h-full object-cover opacity-80"></div>';
+                }
+
+                var pdfBtn = pdf ? '<a href="' + pdf + '" target="_blank" class="px-4 py-2 bg-slate-100 hover:bg-primary-50 text-slate-700 hover:text-primary-700 border border-slate-200 hover:border-primary-200 font-bold text-xs rounded-xl transition flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"/></svg> Class PDF</a>' : '';
+                var noteBadge = pdf ? '<span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-black uppercase tracking-widest rounded">PDF Note</span>' : '';
+
+                var card = '<article id="lesson_card_' + idx + '" class="lesson-card bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col sm:flex-row hover-card-trigger">' +
+                    mediaHTML +
+                    '<div class="p-4 flex flex-col flex-grow justify-between gap-3">' +
+                    '<div><div class="flex items-center gap-2 mb-1.5"><span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-black uppercase tracking-widest rounded">Lesson</span>' + noteBadge + '</div>' +
+                    '<h4 class="text-base font-extrabold text-slate-900 leading-snug line-clamp-2">' + lesson.title + '</h4></div>' +
+                    '<div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">' +
+                    '<span class="text-[10px] font-bold text-slate-400 tracking-wider">' + date + '</span>' +
+                    '<div class="flex gap-2">' + pdfBtn + '</div>' +
+                    '</div></div></article>';
+                container.insertAdjacentHTML('beforeend', card);
+            });
         }
     </script>
 </body>
