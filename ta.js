@@ -245,7 +245,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     </nav>
                 </div>
 
-                <!-- Academic Info -->
+                <!-- Academic Progress -->
                 <div class="space-y-3">
                     <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Course Progress</p>
                     <div class="bg-slate-900/40 border border-slate-900/80 p-4 rounded-2xl space-y-3">
