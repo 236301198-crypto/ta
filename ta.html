@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Teachers Academy | Premium</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: '#070B14',
+                        surface: '#111827',
+                        surfaceLight: '#1F2937',
+                        primary: '#3B82F6',
+                        accent: '#8B5CF6'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #070B14;
+            color: #F3F4F6;
+            overflow-x: hidden;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #070B14; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4B5563; }
+
+        .glass-panel {
+            background: rgba(31, 41, 55, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: inline-block;
+            border-top: 3px solid #8B5CF6;
+            border-right: 3px solid transparent;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #sidebar { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .sidebar-open { transform: translateX(0) !important; }
+        .sidebar-overlay-open { opacity: 1 !important; pointer-events: auto !important; }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen relative">
+
+    <!-- Top Branding Bar -->
+    <div class="w-full bg-black/90 text-center py-1.5 z-[60] relative border-b border-white/5">
+        <span class="text-[9px] font-mono tracking-[0.2em] text-accent/90 uppercase bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-accent">
+            Premium Branding by Naveen
+        </span>
+    </div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-white/10 px-4 py-3 w-full shadow-lg">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button id="menu-btn" onclick="toggleSidebar()" class="p-2 -ml-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                
+                <div class="flex items-center gap-3 cursor-pointer" onclick="navigate('#/my-batches')">
+                    <img src="https://play-lh.googleusercontent.com/x8XlorPIOcczsf2PNlrcW03SkziHQs-tqTMQegTMfWrthvLOmADAnbdxSKAJBaJN8CB8tuLQ80L1mmtb-YAHtNU" 
+                         alt="Logo" class="w-10 h-10 rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-white/10">
+                    <h1 class="text-xl md:text-2xl font-bold font-display tracking-wide uppercase bg-gradient-to-r from-blue-400 via-indigo-400 to-accent bg-clip-text text-transparent hidden sm:block">
+                        Teachers Academy
+                    </h1>
+                </div>
+            </div>
+
+            <button id="back-btn" onclick="goBack()" class="hidden items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium hover:bg-white/10 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> Back
+            </button>
+        </div>
+    </header>
+
+    <!-- Sidebar Overlay & Sidebar -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-surface/95 backdrop-blur-xl border-r border-white/10 z-50 transform -translate-x-full flex flex-col pt-4 shadow-2xl">
+        <div class="px-6 mb-8 mt-2 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-white font-display">Menu</h2>
+            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        </div>
+        
+        <div class="px-4 flex flex-col gap-2 flex-grow">
+            <button onclick="navigate('#/my-batches'); toggleSidebar()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-primary/20 text-gray-300 hover:text-primary transition-all group">
+                <div class="p-2 rounded-xl bg-white/5 group-hover:bg-primary/20"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg></div>
+                <span class="font-semibold">My Batches</span>
+            </button>
+            
+            <button onclick="navigate('#/all-courses'); toggleSidebar()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-accent/20 text-gray-300 hover:text-accent transition-all group">
+                <div class="p-2 rounded-xl bg-white/5 group-hover:bg-accent/20"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg></div>
+                <span class="font-semibold">All Courses</span>
+            </button>
+        </div>
+        <div class="p-6 border-t border-white/10 text-center"><p class="text-xs text-gray-500">v2.0.26 Premium Edition</p></div>
+    </aside>
+
+    <!-- Main Dynamic Content Container -->
+    <main class="flex-grow w-full max-w-7xl mx-auto p-4 md:p-8">
+        <div id="page-header" class="mb-8 hidden">
+            <h2 id="page-title" class="text-3xl font-bold font-display text-white"></h2>
+            <p id="page-subtitle" class="text-gray-400 mt-2"></p>
+        </div>
+        <div id="app-view" class="w-full"></div>
+    </main>
+
+    <!-- Global Elements -->
+    <div id="global-loader" class="fixed inset-0 bg-dark/80 backdrop-blur-md z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <span class="loader"></span>
+        <p class="mt-4 text-accent font-medium tracking-widest uppercase text-sm animate-pulse">Syncing Data...</p>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-300 z-50 glass-panel px-6 py-3 rounded-full flex items-center gap-3 border border-green-500/30">
+        <div class="w-2 h-2 rounded-full bg-green-400 animate-ping"></div>
+        <span id="toast-msg" class="text-white font-medium text-sm">Action successful</span>
+    </div>
+
+    <script>
+        // CONFIGURATION
+        const TOKEN = "4fg1iZcgrW2X8QsF0DpX0ekBNZSNmugOWw9TJWVX5cTmYX4il3VIO%2B1lP6eCPAxoj93%2BhuIgNm03oQ1sCIkmv4zjcEdZwiTA5kpS8WG9VH9tQ6nsKQRDDjSzcQCQpASTHpGzOr%2F4vCIOahj4Z%2FMrQ2eud8PtLvIp1xit7EARO18%3D";
+        
+        const state = { view: '', courseTitleCache: {} };
+
+        // UTILITIES
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('sidebar-open');
+            document.getElementById('sidebar-overlay').classList.toggle('sidebar-overlay-open');
+        }
+        function showLoader() { document.getElementById('global-loader').classList.remove('opacity-0', 'pointer-events-none'); }
+        function hideLoader() { document.getElementById('global-loader').classList.add('opacity-0', 'pointer-events-none'); }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        // WORKER API ENGINE 
+        async function fetchAPI(endpoint, dataObj, isLegacy = false) {
+            showLoader();
+            // Pointing directly to our Cloudflare Worker proxy route
+            const target = `/api${endpoint}`; 
+            const payload = JSON.stringify({ data: dataObj, token: decodeURIComponent(TOKEN) });
+
+            let body;
+            let headers = {};
+
+            if (!isLegacy) {
+                body = new FormData();
+                body.append('body', payload);
+            } else {
+                body = new URLSearchParams();
+                body.append('body', payload);
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            }
+
+            try {
+                const res = await fetch(target, { method: 'POST', body, headers });
+                const json = await res.json();
+                hideLoader();
+                return json;
+            } catch (err) {
+                hideLoader();
+                console.error("API Error:", err);
+                showToast("Network Error: Failed to fetch data");
+                return null;
+            }
+        }
+
+        // LOCAL DATABASE
+        const DB_KEY = "ta_my_batches";
+        function getMyBatches() { return JSON.parse(localStorage.getItem(DB_KEY) || '[]'); }
+        function addToBatch(course) {
+            const batches = getMyBatches();
+            if (!batches.find(b => b.courseId === course.courseId)) {
+                batches.push(course);
+                localStorage.setItem(DB_KEY, JSON.stringify(batches));
+                showToast("Added to My Batches successfully!");
+            } else { showToast("Batch is already added!"); }
+        }
+        function removeBatch(courseId) {
+            let batches = getMyBatches();
+            batches = batches.filter(b => b.courseId != courseId);
+            localStorage.setItem(DB_KEY, JSON.stringify(batches));
+            showToast("Removed from My Batches");
+            if(window.location.hash === '#/my-batches') renderMyBatches();
+        }
+
+        function extractYTThumbnail(url) {
+            if (!url) return null;
+            let videoId = '';
+            const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=))([^"&?\/\s]{11})/i);
+            if (match && match[1]) videoId = match[1];
+            return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
+        }
+
+        // ROUTING SYSTEM
+        window.addEventListener('popstate', handleRoute);
+        function navigate(path) { history.pushState(null, '', path); handleRoute(); }
+        function goBack() { history.back(); }
+
+        function updateHeader(title, subtitle = "", showBack = true) {
+            document.getElementById('page-title').innerText = title;
+            document.getElementById('page-subtitle').innerText = subtitle;
+            document.getElementById('page-header').classList.remove('hidden');
+            if (showBack) document.getElementById('back-btn').classList.remove('hidden');
+            else document.getElementById('back-btn').classList.add('hidden');
+            document.getElementById('app-view').innerHTML = ''; 
+        }
+
+        async function handleRoute() {
+            const hash = window.location.hash || '#/my-batches';
+            const parts = hash.replace('#/', '').split('/');
+            document.getElementById('app-view').innerHTML = '';
+
+            if (parts[0] === 'my-batches') renderMyBatches();
+            else if (parts[0] === 'all-courses') renderAllCategories();
+            else if (parts[0] === 'category' && parts.length === 2) renderCourseList(parts[1]);
+            else if (parts[0] === 'course') {
+                if (parts.length === 2) renderCourseDetails(parts[1]);
+                else if (parts.length === 6 && parts[2] === 'video') renderVideoList(parts[1], parts[3], parts[5]);
+            } else renderMyBatches();
+        }
+
+        // RENDER VIEWS
+        function renderMyBatches() {
+            updateHeader("My Batches", "Your personalized learning space", false);
+            const batches = getMyBatches();
+            if (batches.length === 0) {
+                document.getElementById('app-view').innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20 text-center">
+                        <div class="w-24 h-24 mb-6 rounded-full bg-surfaceLight flex items-center justify-center">
+                            <svg class="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">No batches added</h3>
+                        <p class="text-gray-400 mb-8 max-w-md">Explore all courses and add your favorite batches to access them quickly here.</p>
+                        <button onclick="navigate('#/all-courses')" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-accent text-white rounded-full font-semibold hover:opacity-90 shadow-lg shadow-accent/20">Explore All Courses</button>
+                    </div>`;
+                return;
+            }
+            let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
+            batches.forEach(b => {
+                const thumb = b.thumbnail || 'https://via.placeholder.com/600x400/1F2937/8B5CF6?text=No+Cover';
+                html += `
+                    <div class="glass-panel rounded-2xl overflow-hidden card-hover flex flex-col group relative">
+                        <button onclick="removeBatch('${b.courseId}')" class="absolute top-3 right-3 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-full z-10 backdrop-blur-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                        <div class="h-48 relative bg-surfaceLight overflow-hidden">
+                            <img src="${thumb}" onerror="this.src='https://via.placeholder.com/600x400/1F2937/8B5CF6'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-surface to-transparent"></div>
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow relative -mt-6">
+                            <span class="bg-primary/20 text-primary text-xs font-bold px-3 py-1 rounded-full w-max mb-3 border border-primary/30">₹ ${b.price || 'Free'}</span>
+                            <h3 class="text-lg font-bold text-white mb-4 flex-grow">${b.courseName}</h3>
+                            <button onclick="navigate('#/course/${b.courseId}')" class="w-full py-3 bg-white/10 hover:bg-primary text-white rounded-xl font-semibold flex items-center justify-center gap-2 border border-white/5 hover:border-primary transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Study Now</button>
+                        </div>
+                    </div>`;
+            });
+            html += `</div>`;
+            document.getElementById('app-view').innerHTML = html;
+        }
+
+        async function renderAllCategories() {
+            updateHeader("Explore Categories", "Find the perfect course for your journey", true);
+            const data = await fetchAPI('/coursecategory/v1/getCourseCategory', { companyId: 46 }, false);
+            if (!data?.data?.courseCategory) return document.getElementById('app-view').innerHTML = `<p class="text-red-400">Failed to load.</p>`;
+            
+            let html = `<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">`;
+            data.data.courseCategory.forEach(cat => {
+                const gradient = (cat.categoryId % 2 === 0) ? 'from-blue-600 to-indigo-600' : 'from-purple-600 to-accent';
+                html += `
+                    <button onclick="navigate('#/category/${cat.categoryId}')" class="group relative overflow-hidden rounded-2xl p-6 text-left transition-all hover:scale-[1.02] shadow-xl">
+                        <div class="absolute inset-0 bg-gradient-to-br ${gradient} opacity-80 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <div class="relative z-10 flex flex-col h-full gap-4">
+                            <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg></div>
+                            <h3 class="text-lg font-bold text-white drop-shadow-md">${cat.courseCategory}</h3>
+                        </div>
+                    </button>`;
+            });
+            html += `</div>`;
+            document.getElementById('app-view').innerHTML = html;
+        }
+
+        async function renderCourseList(categoryId) {
+            updateHeader("Available Courses", "Select a batch to view details", true);
+            const layoutData 
