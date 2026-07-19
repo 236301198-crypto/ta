@@ -1,14 +1,11 @@
-// ==========================================
-// TEACHERS ACADEMY - Cloudflare Worker Script
-// Powered by Classwalla Backend Scraper V2
-// Compiled & Customized by Naveen
-// ==========================================
+// =========================================================================
+//                   TEACHERS ACADEMY LEARNING PORTAL V2
+//               Engineered by Naveen | Cloudflare Worker Proxy & SPA
+// =========================================================================
 
 const DEFAULT_TOKEN = "4fg1iZcgrW2X8QsF0DpX0ekBNZSNmugOWw9TJWVX5cTmYX4il3VIO%2B1lP6eCPAxoj93%2BhuIgNm03oQ1sCIkmv4zjcEdZwiTA5kpS8WG9VH9tQ6nsKQRDDjSzcQCQpASTHpGzOr%2F4vCIOahj4Z%2FMrQ2eud8PtLvIp1xit7EARO18%3D";
-const decodedToken = decodeURIComponent(DEFAULT_TOKEN);
 
-// Standard HTTP Headers to keep request context authentic
-const PROXY_HEADERS = {
+const BASE_HEADERS = {
   'Host': 'backend.classwalla.com',
   'Connection': 'Keep-Alive',
   'Accept-Encoding': 'gzip',
@@ -24,171 +21,150 @@ addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
 });
 
-/**
- * Handles incoming requests: Route proxy API calls or serve the SPA HTML page.
- */
 async function handleRequest(request) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  // CORS preflight requests
+  // Handle CORS Preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With'
       }
     });
   }
 
   try {
-    if (path === '/api/categories') {
-      return await handleGetCategories();
-    } else if (path === '/api/courses') {
-      return await handleGetCourses(url);
-    } else if (path === '/api/course-structure') {
-      return await handleGetCourseStructure(url);
-    } else if (path === '/api/course-videos') {
-      return await handleGetCourseVideos(url);
+    if (path === '/api/getCourseCategory') {
+      return await getCourseCategoryProxy();
+    } else if (path === '/api/getCoursesByCat') {
+      return await getCoursesByCatProxy(url.searchParams.get('categoryId'));
+    } else if (path === '/api/getCourseStructure') {
+      return await getCourseStructureProxy(url.searchParams.get('courseId'));
+    } else if (path === '/api/getCourseVideos') {
+      return await getCourseVideosProxy(
+        url.searchParams.get('courseId'),
+        url.searchParams.get('categoryId'),
+        url.searchParams.get('subCategoryId')
+      );
     }
 
-    // Default route: Serve Frontend Client SPA
-    return new Response(getHTMLTemplate(), {
-      headers: { 'Content-Type': 'text/html; charset=utf-8' }
+    // Default: Serve Premium Single Page Application (SPA)
+    return new Response(getSPAHTML(), {
+      headers: { 
+        'Content-Type': 'text/html; charset=utf-8',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
+
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error.message, stack: error.stack }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
     });
   }
 }
 
-// ==========================================
-// CLASSWALLA BACKEND PROXY HANDLERS
-// ==========================================
+// =========================================================================
+//                 BACKEND SECURE API MASKING PROXIES
+// =========================================================================
 
-/**
- * Step 1 Proxy: Fetches all available Course Categories
- */
-async function handleGetCategories() {
+async function getCourseCategoryProxy() {
   const boundary = 'f30abafb-92e2-4b52-bf44-12df495babc3';
   const apiEndpoint = "https://backend.classwalla.com/coursecategory/v1/getCourseCategory";
   
-  const payloadBody = JSON.stringify({
-    data: { companyId: 46 },
-    token: decodedToken
-  });
-
-  const rawMultipart = `--${boundary}\r\nContent-Disposition: form-data; name="body"\r\n\r\n${payloadBody}\r\n--${boundary}--\r\n`;
+  // Exact body building format to match Python concatenation
+  const body_cat = '{"data":{"companyId":46},"token":"' + DEFAULT_TOKEN + '"}';
+  const multipartBody = 
+    `--${boundary}\r\n` +
+    `Content-Disposition: form-data; name="body"\r\n\r\n` +
+    `${body_cat}\r\n` +
+    `--${boundary}--\r\n`;
 
   const response = await fetch(apiEndpoint, {
     method: 'POST',
     headers: {
-      ...PROXY_HEADERS,
+      ...BASE_HEADERS,
       'Content-Type': `multipart/form-data; boundary=${boundary}`
     },
-    body: rawMultipart
+    body: multipartBody
   });
 
-  const data = await response.json();
-  return createJSONResponse(data);
+  const resJson = await response.json();
+  return createJSONResponse(resJson);
 }
 
-/**
- * Step 2 & 3 Proxy: Cascades Layout extraction and resolves actual subcategory list.
- */
-async function handleGetCourses(url) {
-  const categoryId = url.searchParams.get('categoryId');
+async function getCoursesByCatProxy(categoryId) {
   if (!categoryId) {
-    return createJSONResponse({ error: "Missing categoryId query parameter" }, 400);
+    return createJSONResponse({ error: "categoryId is required" }, 400);
   }
 
-  // --- SUB-STEP A: Fetch Layout V2 to extract subcategoryId ---
+  // Step A: Fetch layoutV2 to retrieve exact Subcategory ID
   const layoutBoundary = '276b3148-2c4f-406a-9d76-a4379e9e122c';
   const layoutEndpoint = "https://backend.classwalla.com/coursecategory/v1/getLayoutV2";
   
-  const layoutPayload = JSON.stringify({
-    data: {
-      candidateId: "",
-      categoryId: parseInt(categoryId),
-      companyId: 46,
-      limit: "100",
-      offset: "0"
-    },
-    token: decodedToken
-  });
-
-  const layoutMultipart = `--${layoutBoundary}\r\nContent-Disposition: form-data; name="body"\r\n\r\n${layoutPayload}\r\n--${layoutBoundary}--\r\n`;
+  const body_layout = '{"data":{"candidateId":"","categoryId":' + categoryId + ',"companyId":46,"limit":"100","offset":"0"},"token":"' + DEFAULT_TOKEN + '"}';
+  const multipartLayout = 
+    `--${layoutBoundary}\r\n` +
+    `Content-Disposition: form-data; name="body"\r\n\r\n` +
+    `${body_layout}\r\n` +
+    `--${layoutBoundary}--\r\n`;
 
   const layoutResponse = await fetch(layoutEndpoint, {
     method: 'POST',
     headers: {
-      ...PROXY_HEADERS,
+      ...BASE_HEADERS,
       'Content-Type': `multipart/form-data; boundary=${layoutBoundary}`
     },
-    body: layoutMultipart
+    body: multipartLayout
   });
 
   const layoutJson = await layoutResponse.json();
-  const subcatId = layoutJson?.data?.layout?.[0]?.id;
+  const subcategoryId = layoutJson?.data?.layout?.[0]?.id;
 
-  if (!subcatId) {
-    return createJSONResponse({ error: "No subcategory layout found for category" }, 404);
+  if (!subcategoryId) {
+    return createJSONResponse({ error: "Failed to fetch Subcategory ID for layout layoutV2" }, 404);
   }
 
-  // --- SUB-STEP B: Query Courses using extracted subcategoryId ---
+  // Step B: Fetch courses list using extracted Subcategory ID
   const subcatBoundary = '1af43917-9fc4-43d6-8f6a-dc58aaa6ccef';
   const subcatEndpoint = "https://backend.classwalla.com/coursecategory/v1/getCoursesBySubCat";
 
-  const subcatPayload = JSON.stringify({
-    data: {
-      limit: "100",
-      offset: "0",
-      searchString: "",
-      subcatId: String(subcatId)
-    },
-    token: decodedToken
-  });
-
-  const subcatMultipart = `--${subcatBoundary}\r\nContent-Disposition: form-data; name="body"\r\n\r\n${subcatPayload}\r\n--${subcatBoundary}--\r\n`;
+  const body_subcat = '{"data":{"limit":"100","offset":"0","searchString":"","subcatId":"' + subcategoryId + '"},"token":"' + DEFAULT_TOKEN + '"}';
+  const multipartSubcat = 
+    `--${subcatBoundary}\r\n` +
+    `Content-Disposition: form-data; name="body"\r\n\r\n` +
+    `${body_subcat}\r\n` +
+    `--${subcatBoundary}--\r\n`;
 
   const coursesResponse = await fetch(subcatEndpoint, {
     method: 'POST',
     headers: {
-      ...PROXY_HEADERS,
+      ...BASE_HEADERS,
       'Content-Type': `multipart/form-data; boundary=${subcatBoundary}`
     },
-    body: subcatMultipart
+    body: multipartSubcat
   });
 
   const coursesJson = await coursesResponse.json();
   return createJSONResponse(coursesJson);
 }
 
-/**
- * Step 4 Proxy: Retrieves Course Chapters structure (categories and subcategories)
- */
-async function handleGetCourseStructure(url) {
-  const courseId = url.searchParams.get('courseId');
+async function getCourseStructureProxy(courseId) {
   if (!courseId) {
-    return createJSONResponse({ error: "Missing courseId query parameter" }, 400);
+    return createJSONResponse({ error: "courseId is required" }, 400);
   }
 
   const endpoint = 'https://backend.classwalla.com/course/course/getCourseCategories';
+  const bodyStr = '{"data":{"courseId":"' + courseId + '"},"token":"' + DEFAULT_TOKEN + '"}';
   
-  const payload = {
-    body: JSON.stringify({
-      data: { courseId: String(courseId) },
-      token: decodedToken
-    })
-  };
-
   const formEncoded = new URLSearchParams();
-  for (const [key, value] of Object.entries(payload)) {
-    formEncoded.append(key, value);
-  }
+  formEncoded.append('body', bodyStr);
 
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -199,43 +175,20 @@ async function handleGetCourseStructure(url) {
     body: formEncoded.toString()
   });
 
-  const data = await response.json();
-  return createJSONResponse(data);
+  const resJson = await response.json();
+  return createJSONResponse(resJson);
 }
 
-/**
- * Step 5 Proxy: Fetches lessons, video URL feeds and class note PDFs under a specific topic
- */
-async function handleGetCourseVideos(url) {
-  const courseId = url.searchParams.get('courseId');
-  const categoryId = url.searchParams.get('categoryId');
-  const subCategoryId = url.searchParams.get('subCategoryId');
-
+async function getCourseVideosProxy(courseId, categoryId, subCategoryId) {
   if (!courseId || !categoryId || !subCategoryId) {
-    return createJSONResponse({ error: "Missing required filtering query parameters" }, 400);
+    return createJSONResponse({ error: "courseId, categoryId, subCategoryId are required parameters" }, 400);
   }
 
   const endpoint = 'https://backend.classwalla.com/candidate/candidate/getCourseVideos';
-
-  const payload = {
-    body: JSON.stringify({
-      data: {
-        courseId: String(courseId),
-        filters: {
-          videoCategory: String(categoryId),
-          videoSubCategory: String(subCategoryId)
-        },
-        limit: "1000",
-        offset: "0"
-      },
-      token: decodedToken
-    })
-  };
+  const bodyStr = '{"data":{"courseId":"' + courseId + '","filters":{"videoCategory":"' + categoryId + '","videoSubCategory":"' + subCategoryId + '"},"limit":"1000","offset":"0"},"token":"' + DEFAULT_TOKEN + '"}';
 
   const formEncoded = new URLSearchParams();
-  for (const [key, value] of Object.entries(payload)) {
-    formEncoded.append(key, value);
-  }
+  formEncoded.append('body', bodyStr);
 
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -246,62 +199,73 @@ async function handleGetCourseVideos(url) {
     body: formEncoded.toString()
   });
 
-  const data = await response.json();
-  return createJSONResponse(data);
+  const resJson = await response.json();
+  return createJSONResponse(resJson);
 }
 
-/**
- * Helper to generate optimized JSON Response objects
- */
 function createJSONResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status: status,
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Cache-Control': 'no-store, no-cache, must-revalidate'
     }
   });
 }
 
-// ==========================================
-// SPA FRONTEND TEMPLATE (HTML, TAILWIND, JS)
-// ==========================================
-function getHTMLTemplate() {
+// =========================================================================
+//                    STUNNING PREMIUM FRONTEND (SPA)
+// =========================================================================
+
+function getSPAHTML() {
   return `<!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TEACHERS ACADEMY | Online Learning Portal</title>
+  <title>TEACHERS ACADEMY | Naveen</title>
   
-  <!-- Tailwind CSS CDN -->
+  <!-- CSS Integration -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Google Fonts - Inter -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
           },
           colors: {
             brand: {
               50: '#f5f3ff',
-              100: '#edd8ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c084fc',
+              400: '#a78bfa',
               500: '#8b5cf6',
               600: '#7c3aed',
               700: '#6d28d9',
+              800: '#5b21b6',
               900: '#4c1d95',
+              950: '#0f0b21',
+            },
+            dark: {
+              card: '#121826',
+              bg: '#080c14',
+              border: '#1f293d',
+              muted: '#64748b'
             }
+          },
+          boxShadow: {
+            'glow': '0 0 20px rgba(124, 58, 237, 0.15)',
+            'glow-lg': '0 0 35px rgba(124, 58, 237, 0.3)',
           }
         }
       }
@@ -309,82 +273,91 @@ function getHTMLTemplate() {
   </script>
 
   <style>
-    /* Premium visual features */
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #080c14;
+      color: #f1f5f9;
+    }
+    
+    .glass-nav {
+      background: rgba(8, 12, 20, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(31, 41, 61, 0.7);
+    }
+
+    .premium-card {
+      background: linear-gradient(135deg, #121826 0%, #0d121d 100%);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .premium-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(139, 92, 246, 0.35);
+      box-shadow: 0 10px 30px -10px rgba(124, 58, 237, 0.25);
+    }
+
+    /* Standard high-end scrollbar customization */
     ::-webkit-scrollbar {
-      width: 8px;
+      width: 6px;
+      height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #0f172a;
+      background: #080c14;
     }
     ::-webkit-scrollbar-thumb {
       background: #1e293b;
-      border-radius: 9999px;
+      border-radius: 999px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #334155;
+      background: #7c3aed;
     }
-    .blur-glass {
-      background: rgba(15, 23, 42, 0.75);
+
+    /* Modal Styling */
+    .modal-backdrop {
+      background: rgba(4, 6, 10, 0.85);
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-    .card-glowing {
-      position: relative;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .card-glowing::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      padding: 1px;
-      background: linear-gradient(to bottom right, rgba(139,92,246,0.3), transparent);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
-    }
-    .card-glowing:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.15), 0 8px 10px -6px rgba(139, 92, 246, 0.1);
     }
   </style>
 </head>
-<body class="bg-[#0b0f19] text-slate-100 font-sans min-h-screen flex flex-col antialiased">
+<body class="h-full flex flex-col selection:bg-brand-500 selection:text-white">
 
-  <!-- ================= HEADER SECTION ================= -->
-  <header class="sticky top-0 z-40 border-b border-slate-800/80 blur-glass">
+  <!-- ================= TOP NAV BAR ================= -->
+  <header class="sticky top-0 z-50 glass-nav">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
       
-      <!-- Brand Logo / Identity -->
-      <a href="#/my-batches" class="flex items-center space-x-3 group transition-transform duration-200">
-        <div class="relative w-12 h-12 rounded-xl overflow-hidden border border-brand-500/30 group-hover:scale-105 transition-transform">
+      <!-- Brand Logo Custom Display -->
+      <a href="#/my-batches" class="flex items-center space-x-3.5 group">
+        <div class="relative w-12 h-12 rounded-2xl overflow-hidden border border-brand-500/30 group-hover:border-brand-500/80 group-hover:scale-105 transition-all duration-300">
           <img src="https://play-lh.googleusercontent.com/x8XlorPIOcczsf2PNlrcW03SkziHQs-tqTMQegTMfWrthvLOmADAnbdxSKAJBaJN8CB8tuLQ80L1mmtb-YAHtNU" 
-               alt="Logo" class="w-full h-full object-cover">
+               alt="Teachers Academy Brand Logo" class="w-full h-full object-cover">
         </div>
-        <div>
-          <div class="flex items-center space-x-1.5">
-            <h1 class="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-200">
+        <div class="flex flex-col">
+          <div class="flex items-center space-x-2">
+            <span class="text-lg font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-indigo-300 to-cyan-300">
               TEACHERS ACADEMY
-            </h1>
+            </span>
           </div>
-          <p class="text-[10px] font-semibold text-violet-400/90 tracking-widest uppercase flex items-center">
+          <span class="text-[10px] font-bold tracking-widest text-violet-400/90 uppercase flex items-center">
             <span>By Naveen</span>
             <span class="mx-1.5">•</span>
-            <span class="text-emerald-400 flex items-center"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1 animate-pulse"></span>Verified Portal</span>
-          </p>
+            <span class="text-emerald-400 font-semibold flex items-center">
+              <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1 animate-pulse"></span>
+              Live Learning
+            </span>
+          </span>
         </div>
       </a>
 
-      <!-- Horizontal Navigation Tabs -->
-      <nav class="flex space-x-2 bg-slate-900/60 p-1.5 rounded-xl border border-slate-800/50">
-        <a href="#/my-batches" id="nav-my-batches" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center space-x-2">
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center space-x-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800/80">
+        <a href="#/my-batches" id="nav-my-batches" class="px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2">
           <i class="fa-solid fa-graduation-cap"></i>
           <span>My Batches</span>
-          <span id="badge-my-batches" class="hidden px-1.5 py-0.5 text-[10px] bg-brand-600 text-white rounded-full">0</span>
+          <span id="nav-count" class="ml-1 px-1.5 py-0.5 text-[9px] bg-brand-500 text-white font-extrabold rounded-full hidden">0</span>
         </a>
-        <a href="#/all-courses" id="nav-all-courses" class="px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center space-x-2">
+        <a href="#/all-courses" id="nav-all-courses" class="px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 text-slate-400 hover:text-slate-100">
           <i class="fa-solid fa-compass"></i>
           <span>All Batches</span>
         </a>
@@ -394,591 +367,583 @@ function getHTMLTemplate() {
   </header>
 
   <!-- ================= BREADCRUMBS BAR ================= -->
-  <div class="bg-slate-900/40 border-b border-slate-800/30 py-3.5">
+  <div class="bg-slate-950/60 border-b border-slate-900/45 py-3">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <nav class="flex flex-wrap items-center space-x-2 text-sm text-slate-400" id="breadcrumbs">
-        <!-- Rendered Dynamically -->
-        <span class="text-slate-500">Loading Navigation Router...</span>
+      <nav id="breadcrumbs" class="flex flex-wrap items-center space-x-2 text-xs text-slate-400">
+        <!-- Filled Dynamically -->
+        <span class="text-slate-600">Initializing Navigation System...</span>
       </nav>
     </div>
   </div>
 
-  <!-- ================= MAIN CONTAINER ================= -->
+  <!-- ================= MAIN VIEWPORT CONTAINER ================= -->
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div id="view-container" class="space-y-8">
-      <!-- Active App State Rendered Dynamically Here -->
+    <div id="dynamic-viewport" class="space-y-8">
+      <!-- Direct Injection by Router -->
     </div>
   </main>
 
-  <!-- ================= MODAL: INLINE VIDEO PLAYER ================= -->
-  <div id="video-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm">
-    <div class="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-      <!-- Header -->
-      <div class="flex items-center justify-between p-4 border-b border-slate-800">
-        <div class="flex items-center space-x-3">
-          <span class="p-2 bg-brand-900/30 text-brand-400 rounded-lg text-xs font-bold uppercase tracking-wider">Now Playing</span>
-          <h3 id="modal-video-title" class="text-base font-semibold text-slate-100 truncate max-w-md">Lesson Stream</h3>
+  <!-- ================= EMBEDDED PLAYER MODAL ================= -->
+  <div id="player-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop">
+    <div class="relative w-full max-w-4xl bg-[#111622] border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl shadow-black">
+      
+      <!-- Video Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+        <div class="flex items-center space-x-3.5">
+          <span class="px-2.5 py-1 bg-brand-900/40 text-brand-400 rounded-lg text-[10px] font-bold tracking-wider uppercase">
+            NOW STREAMING
+          </span>
+          <h3 id="player-title" class="text-sm font-bold text-slate-100 truncate max-w-md sm:max-w-xl">Class Lecture</h3>
         </div>
-        <button onclick="closeVideoModal()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors">
-          <i class="fa-solid fa-xmark text-lg"></i>
+        <button onclick="closePlayer()" class="p-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors">
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-      <!-- Video Container -->
+
+      <!-- Iframe Video Panel -->
       <div class="aspect-video bg-black relative">
-        <iframe id="modal-youtube-iframe" class="absolute inset-0 w-full h-full border-0" 
+        <iframe id="player-iframe" class="absolute inset-0 w-full h-full border-0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
-      <!-- Action Footer -->
-      <div class="flex flex-wrap gap-3 items-center justify-between p-4 bg-slate-950/50">
-        <div class="text-xs text-slate-400 flex items-center">
-          <i class="fa-solid fa-circle-info mr-1.5 text-brand-400"></i>
-          <span>Interactive player mode is optimized for instant loading.</span>
+
+      <!-- Footer Integration -->
+      <div class="px-6 py-4 bg-slate-950/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-800/60">
+        <p class="text-xs text-slate-400">
+          <i class="fa-solid fa-info-circle text-brand-400 mr-1.5"></i>
+          YouTube premium stream engine optimized by Naveen.
+        </p>
+        <div class="flex items-center space-x-3">
+          <a id="player-youtube-btn" target="_blank" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-850 hover:text-white text-slate-300 text-xs font-semibold rounded-xl flex items-center space-x-2 transition-all">
+            <i class="fa-brands fa-youtube text-red-500"></i>
+            <span>YouTube View</span>
+          </a>
         </div>
-        <a id="modal-external-link" target="_blank" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-semibold flex items-center space-x-2 transition-colors">
-          <i class="fa-brands fa-youtube text-red-500"></i>
-          <span>Watch on YouTube App</span>
-        </a>
       </div>
+
     </div>
   </div>
 
-  <!-- ================= FOOTER ================= -->
-  <footer class="mt-auto border-t border-slate-900 bg-slate-950 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+  <!-- ================= SYSTEM FEEDBACK NOTIFIER ================= -->
+  <div id="toast-notif" class="fixed bottom-6 right-6 z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="flex items-center space-x-3 px-5 py-3.5 bg-slate-900/95 border border-emerald-500/30 shadow-2xl rounded-2xl">
+      <div class="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <span id="toast-text" class="text-xs font-semibold text-slate-200">Operation Successful</span>
+    </div>
+  </div>
+
+  <!-- ================= COMPACT FOOTER ================= -->
+  <footer class="border-t border-slate-900 bg-slate-950 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center space-x-2">
         <img src="https://play-lh.googleusercontent.com/x8XlorPIOcczsf2PNlrcW03SkziHQs-tqTMQegTMfWrthvLOmADAnbdxSKAJBaJN8CB8tuLQ80L1mmtb-YAHtNU" 
              alt="Logo" class="w-6 h-6 rounded-md">
-        <span class="text-xs font-semibold text-slate-400">&copy; 2026 TEACHERS ACADEMY by Naveen. All rights secured.</span>
+        <span class="text-xs font-medium text-slate-500">&copy; 2026 TEACHERS ACADEMY. Administered securely by Naveen.</span>
       </div>
-      <div class="flex items-center space-x-4 text-xs text-slate-500">
-        <span>Powered safely via decentralized proxy cloud worker.</span>
+      <div class="text-xs text-slate-600 font-medium">
+        Encrypted Cloudflare Worker Routing Framework
       </div>
     </div>
   </footer>
 
-  <!-- ================= ROUTER ENGINE & APP SCRIPT ================= -->
+  <!-- ================= CLIENT SIDE ROUTER ENGINE ================= -->
   <script>
-    // State memory variables
-    const state = {
+    // State Memory Manager
+    const appState = {
       myBatches: [],
-      categoriesCache: [],
-      coursesCache: {}, // categoryId -> courses
-      chaptersCache: {}, // courseId -> chapters
-      currentCourse: null,
+      categoryCache: [],
+      courseCache: {}, // categoryId -> array of courses
+      structureCache: {}, // courseId -> chapters structure
+      currentCourseId: null,
       currentCategory: null,
       currentChapter: null
     };
 
-    // Initialize state from Storage
-    function initLocalStorage() {
+    // Initialize Local Database on Load
+    function initDB() {
       const saved = localStorage.getItem('ta_my_batches');
       if (saved) {
         try {
-          state.myBatches = JSON.parse(saved);
+          appState.myBatches = JSON.parse(saved);
         } catch (e) {
-          state.myBatches = [];
+          appState.myBatches = [];
         }
       }
-      updateMyBatchesBadge();
+      refreshTabCounter();
     }
 
-    function saveLocalStorage() {
-      localStorage.setItem('ta_my_batches', JSON.stringify(state.myBatches));
-      updateMyBatchesBadge();
+    function saveDB() {
+      localStorage.setItem('ta_my_batches', JSON.stringify(appState.myBatches));
+      refreshTabCounter();
     }
 
-    function updateMyBatchesBadge() {
-      const badge = document.getElementById('badge-my-batches');
-      if (badge) {
-        if (state.myBatches.length > 0) {
-          badge.innerText = state.myBatches.length;
-          badge.classList.remove('hidden');
+    function refreshTabCounter() {
+      const counter = document.getElementById('nav-count');
+      if (counter) {
+        if (appState.myBatches.length > 0) {
+          counter.innerText = appState.myBatches.length;
+          counter.classList.remove('hidden');
         } else {
-          badge.classList.add('hidden');
+          counter.classList.add('hidden');
         }
       }
     }
 
-    // Router matching map
-    const routes = [
-      { path: /^\/my-batches$/, action: viewMyBatches },
-      { path: /^\/all-courses$/, action: viewAllCategories },
-      { path: /^\/category\/([^\/]+)$/, action: viewCategoryCourses },
-      { path: /^\/course\/([^\/]+)$/, action: viewCourseStructure },
-      { path: /^\/course\/([^\/]+)\/chapter\/([^\/]+)\/([^\/]+)$/, action: viewChapterLessons }
+    // Interactive Toast Notification
+    function showToast(message, isSuccess = true) {
+      const toast = document.getElementById('toast-notif');
+      const text = document.getElementById('toast-text');
+      if (!toast || !text) return;
+
+      text.innerText = message;
+      toast.classList.remove('translate-y-12', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-12', 'opacity-0');
+      }, 2500);
+    }
+
+    // =========================================================================
+    //                            HASH NAVIGATION SYSTEM
+    // =========================================================================
+    const routingTable = [
+      { regex: /^#\/my-batches$/, action: renderMyBatchesDashboard },
+      { regex: /^#\/all-courses$/, action: renderAllCategories },
+      { regex: /^#\/category\/([^\/]+)$/, action: renderCategoryCourses },
+      { regex: /^#\/course\/([^\/]+)$/, action: renderCourseStructure },
+      { regex: /^#\/course\/([^\/]+)\/chapter\/([^\/]+)\/([^\/]+)$/, action: renderChapterLessons }
     ];
 
-    function runRouter() {
-      const hash = window.location.hash.slice(1) || '/my-batches';
+    function handleHashRouting() {
+      const hash = window.location.hash || '#/my-batches';
       
-      // Update Navbar highlights
-      const navMyBatches = document.getElementById('nav-my-batches');
-      const navAllCourses = document.getElementById('nav-all-courses');
-      
-      if (hash.startsWith('/my-batches')) {
-        navMyBatches.className = "px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center space-x-2 bg-brand-600 text-white shadow-lg shadow-brand-600/10";
-        navAllCourses.className = "px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900";
+      // Update UI Header Highlights
+      const myBatchesTab = document.getElementById('nav-my-batches');
+      const allCoursesTab = document.getElementById('nav-all-courses');
+
+      if (hash.startsWith('#/my-batches')) {
+        myBatchesTab.className = "px-5 py-2.5 rounded-xl text-xs font-bold bg-brand-600 text-white shadow-lg shadow-brand-600/10 transition-all flex items-center space-x-2";
+        allCoursesTab.className = "px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-900 transition-all flex items-center space-x-2";
       } else {
-        navAllCourses.className = "px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center space-x-2 bg-brand-600 text-white shadow-lg shadow-brand-600/10";
-        navMyBatches.className = "px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center space-x-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900";
+        allCoursesTab.className = "px-5 py-2.5 rounded-xl text-xs font-bold bg-brand-600 text-white shadow-lg shadow-brand-600/10 transition-all flex items-center space-x-2";
+        myBatchesTab.className = "px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-900 transition-all flex items-center space-x-2";
       }
 
-      for (const route of routes) {
-        const match = hash.match(route.path);
+      for (const route of routingTable) {
+        const match = hash.match(route.regex);
         if (match) {
-          route.action(...match.slice(1));
+          const args = match.slice(1);
+          route.action(...args);
           return;
         }
       }
-      
-      // Fallback
+
+      // Default redirect
       window.location.hash = '#/my-batches';
     }
 
-    // ==========================================
-    // UTILITY HELPER FUNCTIONS
-    // ==========================================
-
-    function getYouTubeID(url) {
-      if (!url) return null;
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-      const match = url.match(regExp);
-      return (match && match[2].length === 11) ? match[2] : null;
-    }
-
-    function getYoutubeThumbnail(url) {
-      const id = getYouTubeID(url);
-      if (id) {
-        return "https://img.youtube.com/vi/" + id + "/mqdefault.jpg";
-      }
-      return "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=500&q=80"; // fallback
-    }
-
-    function generateCourseThumb(courseName, defaultUrl) {
-      if (defaultUrl && defaultUrl !== "" && defaultUrl !== "null" && defaultUrl !== null) {
-        return defaultUrl;
-      }
-      // Compute beautiful procedural thumbnail if classwalla sends empty string
-      const colors = [
-        ['from-indigo-600', 'to-violet-800'],
-        ['from-purple-600', 'to-pink-800'],
-        ['from-cyan-600', 'to-indigo-800'],
-        ['from-slate-700', 'to-slate-900'],
-        ['from-emerald-600', 'to-teal-800']
-      ];
-      const charCode = courseName.charCodeAt(0) || 0;
-      const selectedColor = colors[charCode % colors.length];
-      
-      return 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=500&q=80';
-    }
-
-    function formatDate(dateStr) {
-      if (!dateStr) return '';
-      try {
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) {
-          return dateStr.split(' ')[0] || '';
-        }
-        return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      } catch (e) {
-        return dateStr;
-      }
-    }
-
-    // Update Breadcrumbs based on active level
-    function setBreadcrumbs(crumbs) {
+    // =========================================================================
+    //                         BREADCRUMB HELPER UI
+    // =========================================================================
+    function setBreadcrumbs(items) {
       const container = document.getElementById('breadcrumbs');
       if (!container) return;
-      
-      let html = \`
-        <a href="#/my-batches" class="hover:text-violet-400 flex items-center space-x-1 transition-colors">
-          <i class="fa-solid fa-house text-xs"></i>
-          <span>Home</span>
-        </a>
-      \`;
 
-      crumbs.forEach((c, index) => {
-        html += \`
-          <span class="text-slate-600">/</span>
-          \`;
-        if (index === crumbs.length - 1) {
-          html += \`<span class="text-slate-200 font-medium truncate max-w-[200px] md:max-w-xs inline-block">\${c.name}</span>\`;
+      let html = `
+        <a href="#/my-batches" class="hover:text-violet-400 transition-colors flex items-center space-x-1.5">
+          <i class="fa-solid fa-house text-[10px]"></i>
+          <span>Dashboard</span>
+        </a>
+      `;
+
+      items.forEach((item, index) => {
+        html += `
+          <span class="text-slate-700 text-[10px]"><i class="fa-solid fa-chevron-right"></i></span>
+        `;
+        if (index === items.length - 1) {
+          html += `
+            <span class="text-slate-200 font-bold truncate max-w-[150px] sm:max-w-xs block">${item.name}</span>
+          `;
         } else {
-          html += \`<a href="\${c.link}" class="hover:text-violet-400 transition-colors truncate max-w-[150px] inline-block">\${c.name}</a>\`;
+          html += `
+            <a href="${item.link}" class="hover:text-violet-400 transition-colors truncate max-w-[120px] block">${item.name}</a>
+          `;
         }
       });
 
       container.innerHTML = html;
     }
 
-    // Modal Video Controllers
-    function playVideo(url, title) {
-      const youtubeId = getYouTubeID(url);
-      if (!youtubeId) {
-        // Fallback to plain opening if not YT
-        window.open(url, '_blank');
-        return;
-      }
-
-      document.getElementById('modal-video-title').innerText = title;
-      document.getElementById('modal-youtube-iframe').src = "https://www.youtube.com/embed/" + youtubeId + "?autoplay=1&rel=0";
-      document.getElementById('modal-external-link').href = url;
-      
-      const modal = document.getElementById('video-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeVideoModal() {
-      const modal = document.getElementById('video-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      document.getElementById('modal-youtube-iframe').src = "";
-    }
-
-    // Fetch dynamic content with API proxy routes
-    async function apiFetch(endpoint) {
-      try {
-        const response = await fetch(endpoint);
-        if (!response.ok) {
-          throw new Error("HTTP connection failed: " + response.status);
-        }
-        return await response.json();
-      } catch (error) {
-        console.error("API error fetching: " + endpoint, error);
-        throw error;
-      }
-    }
-
-    // Render global loading spinner
-    function renderLoading(containerId) {
-      document.getElementById(containerId).innerHTML = \`
-        <div class="flex flex-col items-center justify-center py-20 space-y-4">
+    // =========================================================================
+    //                        LOADER & ERROR WRAPPERS
+    // =========================================================================
+    function showLoader(containerId = 'dynamic-viewport') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-24 space-y-4">
           <div class="relative w-12 h-12">
-            <div class="absolute inset-0 border-4 border-slate-800 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-slate-800/80 rounded-full"></div>
             <div class="absolute inset-0 border-4 border-t-brand-500 rounded-full animate-spin"></div>
           </div>
-          <p class="text-slate-400 text-sm font-medium animate-pulse">Syncing platform resources...</p>
+          <p class="text-xs text-slate-400 font-bold tracking-widest uppercase animate-pulse">
+            Connecting Academic Server...
+          </p>
         </div>
-      \`;
+      `;
     }
 
-    // Render generalized Error message block
-    function renderError(containerId, message, retryHash) {
-      document.getElementById(containerId).innerHTML = \`
-        <div class="max-w-md mx-auto text-center py-16 px-4">
-          <div class="w-16 h-16 bg-red-900/20 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/10">
-            <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+    function showFailedState(containerId, message, retryLink) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = `
+        <div class="max-w-md mx-auto text-center py-16 px-4 bg-[#121826]/30 border border-slate-800 rounded-3xl">
+          <div class="w-14 h-14 bg-red-950/40 text-red-400 rounded-full border border-red-500/20 flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-circle-exclamation text-xl animate-pulse"></i>
           </div>
-          <h3 class="text-lg font-bold text-slate-200 mb-2">Request Failed</h3>
-          <p class="text-slate-400 text-sm mb-6">\${message}</p>
-          <a href="\${retryHash}" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-lg text-sm font-semibold transition-all">
-            <i class="fa-solid fa-arrows-rotate mr-2"></i>Try Again
+          <h3 class="text-slate-200 font-bold text-base mb-1.5">Server Interruption</h3>
+          <p class="text-slate-400 text-xs mb-6 leading-relaxed">${message}</p>
+          <a href="${retryLink}" class="px-5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-slate-200 hover:bg-slate-850 hover:text-white transition-all inline-flex items-center space-x-2">
+            <i class="fa-solid fa-arrow-rotate-right"></i>
+            <span>Retry Connection</span>
           </a>
         </div>
-      \`;
+      `;
     }
 
-    // ==========================================
-    // VIEW 1: MY BATCHES (HOME TAB)
-    // ==========================================
-    function viewMyBatches() {
+    // =========================================================================
+    //                          UTILITY EXTENSION ENGINE
+    // =========================================================================
+    function getYTID(url) {
+      if (!url) return null;
+      const reg = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(reg);
+      return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    function getYTThumb(url) {
+      const id = getYTID(url);
+      if (id) {
+        return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+      }
+      return "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80";
+    }
+
+    function computeCourseThumbnail(course) {
+      const defaultVal = course.cthumb || course.courseThumbnail;
+      if (defaultVal && defaultVal !== "null" && defaultVal.trim() !== "") {
+        return defaultVal;
+      }
+      return "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80";
+    }
+
+    function formatDisplayDate(dateRaw) {
+      if (!dateRaw) return '';
+      try {
+        const d = new Date(dateRaw);
+        if (isNaN(d.getTime())) {
+          return dateRaw.split(' ')[0] || '';
+        }
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      } catch (e) {
+        return dateRaw;
+      }
+    }
+
+    // =========================================================================
+    //                   VIEW 1: MY BATCHES (DASHBOARD)
+    // =========================================================================
+    function renderMyBatchesDashboard() {
       setBreadcrumbs([]);
-      const container = document.getElementById('view-container');
-      
-      if (state.myBatches.length === 0) {
-        container.innerHTML = \`
-          <!-- Dashboard Greeting Hero -->
-          <div class="relative bg-gradient-to-r from-brand-900/40 via-slate-900 to-indigo-950/20 rounded-2xl border border-slate-800/80 p-8 overflow-hidden">
-            <div class="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      const viewport = document.getElementById('dynamic-viewport');
+      if (!viewport) return;
+
+      if (appState.myBatches.length === 0) {
+        viewport.innerHTML = `
+          <!-- Beautiful Greeting Welcome Hero -->
+          <div class="relative bg-gradient-to-r from-brand-950/60 via-slate-900 to-indigo-950/30 rounded-3xl border border-slate-800 p-8 sm:p-10 overflow-hidden">
+            <div class="absolute -top-12 -right-12 w-80 h-80 bg-brand-600/10 rounded-full blur-3xl pointer-events-none"></div>
             <div class="relative z-10 max-w-xl">
-              <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2 text-slate-100">
-                Welcome back to your Study Desk!
+              <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-3 text-slate-100">
+                Welcome to your Learning Desk!
               </h2>
-              <p class="text-slate-400 text-sm mb-6 leading-relaxed">
-                You have not registered any batches inside your custom device locker yet. Navigate to the Explorer to discover live batches and save them offline!
+              <p class="text-slate-400 text-xs sm:text-sm mb-6 leading-relaxed">
+                Unlock, trace, and manage lectures and resources easily on your device. Explore the course catalog to start pinning learning batches today.
               </p>
-              <a href="#/all-courses" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-semibold shadow-lg shadow-brand-600/20 inline-flex items-center space-x-2 transition-all">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <span>Explore Catalog</span>
+              <a href="#/all-courses" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs tracking-wide shadow-lg shadow-brand-600/20 inline-flex items-center space-x-2 transition-all">
+                <i class="fa-solid fa-compass"></i>
+                <span>Explore All Batches</span>
               </a>
             </div>
           </div>
-          
-          <!-- Empty Dashboard UI placeholder -->
-          <div class="text-center py-20 border border-dashed border-slate-800 rounded-2xl bg-slate-950/40">
-            <div class="w-16 h-16 bg-slate-900/60 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-800">
-              <i class="fa-solid fa-folder-open text-slate-500 text-xl"></i>
+
+          <!-- Empty Grid Dashboard UI -->
+          <div class="text-center py-20 border border-dashed border-slate-800 rounded-3xl bg-slate-950/30 max-w-xl mx-auto">
+            <div class="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-800">
+              <i class="fa-solid fa-graduation-cap text-slate-500 text-lg"></i>
             </div>
-            <h4 class="text-slate-300 font-bold text-base">Your Dashboard is Empty</h4>
-            <p class="text-slate-500 text-xs mt-1 max-w-xs mx-auto">Explore courses and click "Add to My Batches" to persist lectures and materials inside this space.</p>
+            <h4 class="text-slate-300 font-bold text-sm">Dashboard is Unlocked but Empty</h4>
+            <p class="text-slate-500 text-xs mt-1.5 max-w-xs mx-auto px-4">Browse classes inside the explorer. All marked course sessions will immediately appear here.</p>
           </div>
-        \`;
+        `;
         return;
       }
 
-      // Render interactive Dashboard UI
-      let html = \`
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      // Render Dynamic Locker List
+      let html = `
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 class="text-xl font-bold tracking-tight text-slate-200">My Saved Batches</h2>
-            <p class="text-slate-500 text-xs mt-1">Locker persistent storage verified on this browser workspace.</p>
+            <h2 class="text-xl font-extrabold tracking-tight text-slate-200">Registered Batches</h2>
+            <p class="text-slate-500 text-xs mt-0.5">Quick workspace access mapped locally to this web browser.</p>
           </div>
           
-          <!-- Quick Status Dashboard Widget -->
-          <div class="grid grid-cols-2 gap-4 bg-slate-900/40 border border-slate-800 p-3 rounded-xl divide-x divide-slate-800 max-w-sm w-full md:w-auto">
-            <div class="px-4 text-center">
-              <span class="text-[10px] text-slate-500 uppercase tracking-widest block">Active Batches</span>
-              <span class="text-lg font-bold text-slate-200">\${state.myBatches.length}</span>
-            </div>
-            <div class="px-4 text-center">
-              <span class="text-[10px] text-slate-500 uppercase tracking-widest block">Storage Sync</span>
-              <span class="text-xs font-bold text-emerald-400 mt-1.5 inline-flex items-center">
-                <i class="fa-solid fa-cloud mr-1"></i>Saved
-              </span>
-            </div>
+          <div class="flex items-center space-x-3 bg-slate-900/40 p-2 border border-slate-800 rounded-xl">
+            <span class="text-[10px] text-slate-400 uppercase tracking-widest px-2.5 font-bold border-r border-slate-800">Workspace Sync</span>
+            <span class="text-xs font-bold text-emerald-400 px-2.5 flex items-center">
+              <i class="fa-solid fa-cloud-bolt mr-1.5 text-emerald-400"></i>Active
+            </span>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      \`;
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      `;
 
-      state.myBatches.forEach(b => {
-        const resolvedThumb = generateCourseThumb(b.courseName, b.cthumb || b.courseThumbnail);
-        html += \`
-          <div class="group bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden card-glowing flex flex-col h-full">
-            <div class="relative aspect-video bg-slate-950 overflow-hidden">
-              <img src="\${resolvedThumb}" alt="\${b.courseName}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-              <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90"></div>
+      appState.myBatches.forEach(batch => {
+        const thumb = computeCourseThumbnail(batch);
+        html += `
+          <div class="group relative premium-card rounded-2xl overflow-hidden flex flex-col justify-between h-full">
+            <div class="relative aspect-video overflow-hidden bg-slate-950">
+              <img src="${thumb}" alt="${batch.courseName}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+              <div class="absolute inset-0 bg-gradient-to-t from-[#080c14] via-[#080c14]/10 to-transparent"></div>
               <div class="absolute top-3 left-3">
-                <span class="px-2.5 py-1 bg-brand-600/90 blur-glass text-[10px] font-bold text-white uppercase tracking-wider rounded-md border border-brand-500/20">
-                  ACTIVE BATCH
+                <span class="px-2.5 py-1 bg-brand-600/95 text-[9px] font-extrabold text-white uppercase tracking-widest rounded-lg border border-brand-400/20 shadow-glow">
+                  My Course
                 </span>
               </div>
             </div>
+
             <div class="p-5 flex-grow flex flex-col justify-between">
               <div>
-                <h3 class="text-sm font-bold text-slate-100 group-hover:text-brand-400 transition-colors line-clamp-2 leading-snug">
-                  \${b.courseName}
+                <h3 class="text-xs font-bold text-slate-200 group-hover:text-brand-300 transition-colors line-clamp-2 leading-relaxed">
+                  ${batch.courseName}
                 </h3>
-                <div class="mt-2.5 flex items-center space-x-1.5 text-xs text-slate-400">
-                  <span class="text-violet-400 font-semibold">\${b.price === "0" ? "Free Batch" : "₹" + b.price}</span>
+                <div class="mt-2.5 flex items-center space-x-1.5 text-xs text-brand-300 font-extrabold">
+                  <span>${batch.price === "0" ? "Free Batch" : "₹" + batch.price}</span>
                 </div>
               </div>
-              <div class="mt-5 grid grid-cols-5 gap-2 border-t border-slate-800/80 pt-4">
-                <a href="#/course/\${b.courseId}" class="col-span-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl text-xs text-center flex items-center justify-center space-x-2 shadow-lg shadow-brand-600/15 transition-all">
-                  <i class="fa-solid fa-graduation-cap"></i>
-                  <span>Enter Lectures</span>
+
+              <div class="mt-6 grid grid-cols-5 gap-2 border-t border-slate-800/60 pt-4">
+                <a href="#/course/${batch.courseId}" class="col-span-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs text-center flex items-center justify-center space-x-2 transition-all shadow-lg shadow-brand-600/10">
+                  <i class="fa-solid fa-circle-play text-[10px]"></i>
+                  <span>Enter Dashboard</span>
                 </a>
-                <button onclick="removeFromMyBatches('\${b.courseId}')" class="col-span-1 p-2 bg-slate-800/80 hover:bg-red-950/60 text-slate-400 hover:text-red-400 rounded-xl text-xs border border-slate-700/50 hover:border-red-500/20 flex items-center justify-center transition-colors" title="Remove Batch from storage">
-                  <i class="fa-solid fa-trash-can"></i>
+                <button onclick="removeBatchFromMyList('${batch.courseId}')" class="col-span-1 py-2.5 bg-slate-900 hover:bg-red-950/40 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-500/20 rounded-xl text-xs flex items-center justify-center transition-colors" title="Remove Course">
+                  <i class="fa-solid fa-trash-can text-[11px]"></i>
                 </button>
               </div>
             </div>
           </div>
-        \`;
+        `;
       });
 
-      html += \`</div>\`;
-      container.innerHTML = html;
+      html += `</div>`;
+      viewport.innerHTML = html;
     }
 
-    // ==========================================
-    // VIEW 2: CATEGORIES (ALL BATCHES START POINT)
-    // ==========================================
-    async function viewAllCategories() {
-      setBreadcrumbs([{ name: 'Explore Batches', link: '#/all-courses' }]);
-      const container = document.getElementById('view-container');
-      
-      renderLoading('view-container');
+    function removeBatchFromMyList(courseId) {
+      appState.myBatches = appState.myBatches.filter(b => String(b.courseId) !== String(courseId));
+      saveDB();
+      showToast("Course Batch removed successfully!");
+      renderMyBatchesDashboard();
+    }
+
+    // =========================================================================
+    //                     VIEW 2: CATEGORIES CATALOG EXPLORER
+    // =========================================================================
+    async function renderAllCategories() {
+      setBreadcrumbs([{ name: 'All Batches', link: '#/all-courses' }]);
+      showLoader();
 
       try {
-        if (state.categoriesCache.length === 0) {
-          const res = await apiFetch('/api/categories');
-          state.categoriesCache = res?.data?.courseCategory || [];
+        if (appState.categoryCache.length === 0) {
+          const res = await fetch('/api/getCourseCategory');
+          const data = await res.json();
+          appState.categoryCache = data?.data?.courseCategory || [];
         }
 
-        if (state.categoriesCache.length === 0) {
-          renderError('view-container', "No curriculum streams were resolved in backend databases.", '#/all-courses');
+        const viewport = document.getElementById('dynamic-viewport');
+        if (!viewport) return;
+
+        if (appState.categoryCache.length === 0) {
+          showFailedState('dynamic-viewport', "API reported empty categories. Token expired?", '#/all-courses');
           return;
         }
 
-        // Render Premium categories view grid
-        let html = \`
+        let html = `
           <div>
-            <h2 class="text-xl font-bold text-slate-200">Curriculum Streams</h2>
-            <p class="text-slate-500 text-xs mt-1">Select your targeted domain or specific academic board to view active batch modules.</p>
+            <h2 class="text-xl font-extrabold tracking-tight text-slate-200">Category Streams</h2>
+            <p class="text-slate-500 text-xs mt-0.5">Explore batches under specific categories and educational departments.</p>
           </div>
-          
+
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        \`;
+        `;
 
-        state.categoriesCache.forEach((cc, idx) => {
-          // Unique design gradients for category tiles
-          const gradients = [
-            'from-violet-600/10 via-slate-900 to-slate-900 border-violet-500/20 hover:border-violet-500/40 text-violet-400',
-            'from-indigo-600/10 via-slate-900 to-slate-900 border-indigo-500/20 hover:border-indigo-500/40 text-indigo-400',
-            'from-cyan-600/10 via-slate-900 to-slate-900 border-cyan-500/20 hover:border-cyan-500/40 text-cyan-400',
-            'from-purple-600/10 via-slate-900 to-slate-900 border-purple-500/20 hover:border-purple-500/40 text-purple-400',
-            'from-emerald-600/10 via-slate-900 to-slate-900 border-emerald-500/20 hover:border-emerald-500/40 text-emerald-400'
-          ];
-          const chosenGrad = gradients[idx % gradients.length];
-
-          html += \`
-            <a href="#/category/\${cc.categoryId}" class="group block p-6 rounded-2xl border bg-gradient-to-br \${chosenGrad} transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-950/10 flex items-center justify-between">
+        appState.categoryCache.forEach((cc, idx) => {
+          const indexNum = idx + 1;
+          html += `
+            <a href="#/category/${cc.categoryId}" class="group block p-6 premium-card rounded-2xl flex items-center justify-between border border-slate-800/80 hover:bg-gradient-to-br hover:from-brand-950/10">
               <div class="space-y-1.5 pr-4">
-                <h3 class="font-bold text-slate-200 group-hover:text-white transition-colors text-base leading-snug">
-                  \${cc.courseCategory}
-                </h3>
-                <span class="inline-block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
-                  Explore Stream Courses
+                <span class="text-[9px] font-extrabold text-violet-400/80 uppercase tracking-widest">
+                  STREAM MODULE ${indexNum}
                 </span>
+                <h3 class="font-extrabold text-slate-200 group-hover:text-white transition-colors text-sm sm:text-base leading-tight">
+                  ${cc.courseCategory}
+                </h3>
               </div>
-              <div class="w-10 h-10 rounded-xl bg-slate-800/80 group-hover:bg-brand-600 group-hover:text-white text-slate-400 flex items-center justify-center transition-all">
-                <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-0.5 transition-transform"></i>
+              <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800/60 group-hover:bg-brand-600 group-hover:text-white group-hover:border-transparent text-slate-400 flex items-center justify-center transition-all duration-300">
+                <i class="fa-solid fa-chevron-right text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
               </div>
             </a>
-          \`;
+          `;
         });
 
-        html += \`</div>\`;
-        container.innerHTML = html;
+        html += `</div>`;
+        viewport.innerHTML = html;
 
       } catch (err) {
-        renderError('view-container', "Failed connecting proxy network pipelines. Verify system credentials.", '#/all-courses');
+        showFailedState('dynamic-viewport', err.message, '#/all-courses');
       }
     }
 
-    // ==========================================
-    // VIEW 3: COURSES WITHIN SPECIFIC CATEGORY
-    // ==========================================
-    async function viewCategoryCourses(categoryId) {
-      renderLoading('view-container');
+    // =========================================================================
+    //                        VIEW 3: CATEGORIES COURSES LIST
+    // =========================================================================
+    async function renderCategoryCourses(categoryId) {
+      showLoader();
 
       try {
         // Resolve target Category title
-        let categoryName = "Curriculum Streams";
-        if (state.categoriesCache.length === 0) {
-          const resCat = await apiFetch('/api/categories');
-          state.categoriesCache = resCat?.data?.courseCategory || [];
+        let categoryName = "Streams Explorer";
+        if (appState.categoryCache.length === 0) {
+          const resCat = await fetch('/api/getCourseCategory');
+          const dataCat = await resCat.json();
+          appState.categoryCache = dataCat?.data?.courseCategory || [];
         }
-        const activeCat = state.categoriesCache.find(c => String(c.categoryId) === String(categoryId));
+        const activeCat = appState.categoryCache.find(c => String(c.categoryId) === String(categoryId));
         if (activeCat) {
           categoryName = activeCat.courseCategory;
-          state.currentCategory = activeCat;
+          appState.currentCategory = activeCat;
         }
 
         setBreadcrumbs([
-          { name: 'Explore Batches', link: '#/all-courses' },
+          { name: 'All Batches', link: '#/all-courses' },
           { name: categoryName, link: '#/category/' + categoryId }
         ]);
 
         // Query active courses for specified CategoryId
-        if (!state.coursesCache[categoryId]) {
-          const coursesRes = await apiFetch('/api/courses?categoryId=' + categoryId);
+        if (!appState.courseCache[categoryId]) {
+          const res = await fetch('/api/getCoursesByCat?categoryId=' + categoryId);
+          const data = await res.json();
           
           let clists = [];
-          if (coursesRes?.data?.candidateCourseList) {
-            clists = coursesRes.data.candidateCourseList;
-          } else if (coursesRes?.data?.layout?.[0]?.content) {
-            clists = coursesRes.data.layout[0].content;
+          if (data?.data?.candidateCourseList) {
+            clists = data.data.candidateCourseList;
+          } else if (data?.data?.layout?.[0]?.content) {
+            clists = data.data.layout[0].content;
           }
-          state.coursesCache[categoryId] = clists;
+          appState.courseCache[categoryId] = clists;
         }
 
-        const courses = state.coursesCache[categoryId];
-        const container = document.getElementById('view-container');
+        const courses = appState.courseCache[categoryId];
+        const viewport = document.getElementById('dynamic-viewport');
+        if (!viewport) return;
 
         if (!courses || courses.length === 0) {
-          container.innerHTML = \`
-            <div class="text-center py-20 border border-dashed border-slate-800 rounded-2xl bg-slate-950/40 max-w-xl mx-auto">
-              <div class="w-16 h-16 bg-slate-900/60 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-800">
-                <i class="fa-solid fa-graduation-cap text-slate-500 text-xl"></i>
+          viewport.innerHTML = `
+            <div class="text-center py-20 border border-dashed border-slate-800 rounded-3xl bg-slate-950/30 max-w-xl mx-auto">
+              <div class="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-800">
+                <i class="fa-solid fa-graduation-cap text-slate-500 text-lg"></i>
               </div>
-              <h4 class="text-slate-300 font-bold text-base">No Batches Available</h4>
-              <p class="text-slate-500 text-xs mt-1 max-w-xs mx-auto">No currently active modules were compiled under this curriculum stream block.</p>
-              <a href="#/all-courses" class="mt-6 px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 rounded-lg inline-block hover:bg-slate-800">
-                <i class="fa-solid fa-arrow-left mr-1.5"></i>Return to All Streams
+              <h4 class="text-slate-300 font-bold text-sm">No Courses Available</h4>
+              <p class="text-slate-500 text-xs mt-1.5 max-w-xs mx-auto">No batches are linked inside this category structure at the moment.</p>
+              <a href="#/all-courses" class="mt-5 px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-bold text-slate-300 rounded-xl inline-block hover:bg-slate-800">
+                <i class="fa-solid fa-chevron-left mr-1.5"></i>Return to Explorer
               </a>
             </div>
-          \`;
+          `;
           return;
         }
 
-        // Render fully polished course cards list
-        let html = \`
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        // Render card layout
+        let html = `
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 class="text-xl font-bold tracking-tight text-slate-200">\${categoryName}</h2>
-              <p class="text-slate-500 text-xs mt-1">Browse active batches and register them to save to your local study cabinet.</p>
+              <h2 class="text-xl font-extrabold tracking-tight text-slate-200">${categoryName}</h2>
+              <p class="text-slate-500 text-xs mt-0.5">Explore available batches and add them to your local list for workspace tracking.</p>
             </div>
             
-            <!-- Quick Live Filter Search Bar -->
             <div class="relative max-w-xs w-full">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 pointer-events-none">
-                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 pointer-events-none">
+                <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
               </span>
-              <input type="text" id="course-search-field" oninput="filterCourses(this.value)" placeholder="Search batch courses..." 
-                     class="w-full pl-9 pr-4 py-2 bg-slate-900/60 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500">
+              <input type="text" id="course-filter" oninput="filterCourseList(this.value)" placeholder="Filter courses by title..." 
+                     class="w-full pl-9 pr-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500">
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="courses-grid-mount">
-        \`;
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="course-cards-mount">
+        `;
 
         courses.forEach(c => {
-          const isAdded = state.myBatches.some(b => String(b.courseId) === String(c.courseId));
-          const resolvedThumb = generateCourseThumb(c.courseName, c.cthumb || c.courseThumbnail);
+          const isAdded = appState.myBatches.some(b => String(b.courseId) === String(c.courseId));
+          const thumb = computeCourseThumbnail(c);
           
-          html += \`
-            <div class="group bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden card-glowing flex flex-col h-full course-search-card" data-title="\${c.courseName.toLowerCase()}">
-              <div class="relative aspect-video bg-slate-950 overflow-hidden">
-                <img src="\${resolvedThumb}" alt="\${c.courseName}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90"></div>
-                <div class="absolute top-3 left-3">
-                  <span class="px-2.5 py-1 bg-slate-900/90 blur-glass text-[10px] font-bold text-slate-300 uppercase tracking-wider rounded-md border border-slate-700/20">
-                    Live Session
-                  </span>
-                </div>
+          html += `
+            <div class="group relative premium-card rounded-2xl overflow-hidden flex flex-col justify-between h-full search-card" data-title="${c.courseName.toLowerCase()}">
+              <div class="relative aspect-video overflow-hidden bg-slate-950">
+                <img src="${thumb}" alt="${c.courseName}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#080c14] via-[#080c14]/10 to-transparent"></div>
               </div>
+
               <div class="p-5 flex-grow flex flex-col justify-between">
                 <div>
-                  <h3 class="text-sm font-bold text-slate-100 group-hover:text-brand-400 transition-colors line-clamp-2 leading-snug">
-                    \${c.courseName}
+                  <h3 class="text-xs font-bold text-slate-200 group-hover:text-brand-300 transition-colors line-clamp-2 leading-relaxed">
+                    ${c.courseName}
                   </h3>
-                  <div class="mt-2 flex items-center space-x-1.5 text-xs text-slate-400">
-                    <span class="text-violet-400 font-semibold">\${c.price === "0" ? "Free Admission" : "₹" + c.price}</span>
+                  <div class="mt-2.5 flex items-center space-x-1.5 text-xs text-brand-300 font-extrabold">
+                    <span>${c.price === "0" ? "Free Admission" : "₹" + c.price}</span>
                   </div>
                 </div>
-                
-                <div class="mt-5 grid grid-cols-5 gap-2 border-t border-slate-800/80 pt-4">
-                  <a href="#/course/\${c.courseId}" class="col-span-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs text-center flex items-center justify-center space-x-1.5 transition-colors">
-                    <span>View Chapters</span>
+
+                <div class="mt-6 grid grid-cols-5 gap-2 border-t border-slate-800/60 pt-4">
+                  <a href="#/course/${c.courseId}" class="col-span-3 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-750 text-slate-200 font-bold rounded-xl text-xs text-center flex items-center justify-center space-x-1.5 transition-colors">
+                    <span>Structure</span>
                   </a>
                   
-                  <button id="add-btn-\${c.courseId}" onclick="toggleMyBatchRegister(\${JSON.stringify(c).replace(/"/g, '&quot;')})" 
-                          class="col-span-2 py-2.5 font-bold rounded-xl text-xs flex items-center justify-center space-x-1 transition-all \${isAdded ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 hover:bg-red-950/40 hover:text-red-400 hover:border-red-500/20' : 'bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/15'}"
-                          \${isAdded ? 'title="Click to remove from dashboard"' : ''}>
-                    \${isAdded ? '<i class="fa-solid fa-circle-check"></i> <span>Saved</span>' : '<i class="fa-solid fa-plus"></i> <span>Add</span>'}
+                  <button id="add-btn-${c.courseId}" onclick='toggleBatchRegistration(${JSON.stringify(c).replace(/'/g, "&apos;")})' 
+                          class="col-span-2 py-2.5 font-extrabold rounded-xl text-xs flex items-center justify-center space-x-1 transition-all ${isAdded ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 hover:bg-red-950/40 hover:text-red-400 hover:border-red-500/20' : 'bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/10'}">
+                    ${isAdded ? '<i class="fa-solid fa-check"></i> <span>Saved</span>' : '<i class="fa-solid fa-plus"></i> <span>Add</span>'}
                   </button>
                 </div>
               </div>
             </div>
-          \`;
+          `;
         });
 
-        html += \`</div>\`;
-        container.innerHTML = html;
+        html += `</div>`;
+        viewport.innerHTML = html;
 
       } catch (err) {
-        renderError('view-container', "Failed downloading list under category. Please re-authenticate.", '#/category/' + categoryId);
+        showFailedState('dynamic-viewport', err.message, '#/category/' + categoryId);
       }
     }
 
-    // Interactive front-end filter for Course selection
-    function filterCourses(query) {
-      const formatted = query.toLowerCase().trim();
-      const cards = document.getElementsByClassName('course-search-card');
+    function filterCourseList(val) {
+      const formatted = val.toLowerCase().trim();
+      const cards = document.getElementsByClassName('search-card');
       
       Array.from(cards).forEach(card => {
         const title = card.getAttribute('data-title');
@@ -990,76 +955,66 @@ function getHTMLTemplate() {
       });
     }
 
-    // Handles Adding & Removing courses from the local persistent storage (Dashboard)
-    function toggleMyBatchRegister(courseObj) {
-      const index = state.myBatches.findIndex(b => String(b.courseId) === String(courseObj.courseId));
+    // Persistent storage manipulation inside lists
+    function toggleBatchRegistration(courseObj) {
+      const index = appState.myBatches.findIndex(b => String(b.courseId) === String(courseObj.courseId));
       const btn = document.getElementById('add-btn-' + courseObj.courseId);
       
       if (index > -1) {
-        // Remove
-        state.myBatches.splice(index, 1);
-        saveLocalStorage();
+        // Remove from persistent storage
+        appState.myBatches.splice(index, 1);
+        saveDB();
+        showToast("Removed from My Batches");
         if (btn) {
-          btn.className = "col-span-2 py-2.5 font-bold rounded-xl text-xs flex items-center justify-center space-x-1 bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/15 transition-all";
+          btn.className = "col-span-2 py-2.5 font-extrabold rounded-xl text-xs flex items-center justify-center space-x-1 bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/10 transition-all";
           btn.innerHTML = '<i class="fa-solid fa-plus"></i> <span>Add</span>';
-          btn.removeAttribute('title');
         }
       } else {
-        // Add
-        state.myBatches.push(courseObj);
-        saveLocalStorage();
+        // Add to persistent storage
+        appState.myBatches.push(courseObj);
+        saveDB();
+        showToast("Saved to My Batches!");
         if (btn) {
-          btn.className = "col-span-2 py-2.5 font-bold rounded-xl text-xs flex items-center justify-center space-x-1 bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 hover:bg-red-950/40 hover:text-red-400 hover:border-red-500/20 transition-all";
-          btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>Saved</span>';
-          btn.setAttribute('title', 'Click to remove from dashboard');
+          btn.className = "col-span-2 py-2.5 font-extrabold rounded-xl text-xs flex items-center justify-center space-x-1 bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 hover:bg-red-950/40 hover:text-red-400 hover:border-red-500/20 transition-all";
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Saved</span>';
         }
       }
     }
 
-    function removeFromMyBatches(courseId) {
-      state.myBatches = state.myBatches.filter(b => String(b.courseId) !== String(courseId));
-      saveLocalStorage();
-      viewMyBatches();
-    }
-
-    // ==========================================
-    // VIEW 4: COURSE CHAPTERS STRUCTURE
-    // ==========================================
-    async function viewCourseStructure(courseId) {
-      renderLoading('view-container');
+    // =========================================================================
+    //                        VIEW 4: COURSE SYLLABUS LAYOUT
+    // =========================================================================
+    async function renderCourseStructure(courseId) {
+      showLoader();
 
       try {
-        // Find course name context from cache or Storage
-        let courseName = "Course Outline";
-        let parentCategoryLink = "#/all-courses";
-        
+        let courseName = "Syllabus Outline";
         let foundCourse = null;
-        Object.values(state.coursesCache).flat().forEach(c => {
+
+        // Trace active course metadata
+        Object.values(appState.courseCache).flat().forEach(c => {
           if (c && String(c.courseId) === String(courseId)) foundCourse = c;
         });
         if (!foundCourse) {
-          foundCourse = state.myBatches.find(b => String(b.courseId) === String(courseId));
+          foundCourse = appState.myBatches.find(b => String(b.courseId) === String(courseId));
         }
 
         if (foundCourse) {
           courseName = foundCourse.courseName;
-          state.currentCourse = foundCourse;
-          if (foundCourse.categoryId) {
-            parentCategoryLink = "#/category/" + foundCourse.categoryId;
-          }
+          appState.currentCourseId = courseId;
         }
 
         setBreadcrumbs([
-          { name: 'Explore Batches', link: '#/all-courses' },
+          { name: 'All Batches', link: '#/all-courses' },
           { name: courseName, link: '#/course/' + courseId }
         ]);
 
-        if (!state.chaptersCache[courseId]) {
-          const res = await apiFetch('/api/course-structure?courseId=' + courseId);
-          
-          // Formulate category/subcategory mapping
+        if (!appState.structureCache[courseId]) {
+          const res = await fetch('/api/getCourseStructure?courseId=' + courseId);
+          const data = await res.json();
+
           const categories = [];
-          const categoryList = res?.data?.categoryList || [];
+          const categoryList = data?.data?.categoryList || [];
           
           categoryList.forEach(c => {
             const categoryIdVal = c.id;
@@ -1076,29 +1031,30 @@ function getHTMLTemplate() {
             });
           });
 
-          state.chaptersCache[courseId] = categories;
+          appState.structureCache[courseId] = categories;
         }
 
-        const chapters = state.chaptersCache[courseId];
-        const container = document.getElementById('view-container');
+        const chapters = appState.structureCache[courseId];
+        const viewport = document.getElementById('dynamic-viewport');
+        if (!viewport) return;
 
         if (!chapters || chapters.length === 0) {
-          container.innerHTML = \`
-            <div class="text-center py-20 border border-dashed border-slate-800 rounded-2xl bg-slate-950/40 max-w-xl mx-auto">
-              <div class="w-16 h-16 bg-slate-900/60 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-800">
-                <i class="fa-solid fa-book-open text-slate-500 text-xl"></i>
+          viewport.innerHTML = `
+            <div class="text-center py-20 border border-dashed border-slate-800 rounded-3xl bg-slate-950/30 max-w-xl mx-auto">
+              <div class="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-800">
+                <i class="fa-solid fa-folder-open text-slate-500 text-lg"></i>
               </div>
-              <h4 class="text-slate-300 font-bold text-base">Chapters Not Found</h4>
-              <p class="text-slate-500 text-xs mt-1 max-w-xs mx-auto">No chapters or sub-topic layouts are uploaded for this specific course feed yet.</p>
-              <a href="#/all-courses" class="mt-6 px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 rounded-lg inline-block hover:bg-slate-800">
-                <i class="fa-solid fa-arrow-left mr-1.5"></i>Return to Catalog
+              <h4 class="text-slate-300 font-bold text-sm">Syllabus Empty</h4>
+              <p class="text-slate-500 text-xs mt-1.5 max-w-xs mx-auto">Class sessions are not published inside this workspace layout yet.</p>
+              <a href="#/all-courses" class="mt-5 px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-bold text-slate-300 rounded-xl inline-block hover:bg-slate-800">
+                <i class="fa-solid fa-chevron-left mr-1.5"></i>Return to Catalog
               </a>
             </div>
-          \`;
+          `;
           return;
         }
 
-        // Group chapters logically by parent Chapter Topic for structured rendering
+        // Logical grouping by subject categories
         const grouped = {};
         chapters.forEach(chap => {
           if (!grouped[chap.categoryName]) {
@@ -1110,261 +1066,294 @@ function getHTMLTemplate() {
           grouped[chap.categoryName].subtopics.push(chap);
         });
 
-        let html = \`
-          <div class="relative p-6 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <span class="text-[10px] font-bold text-violet-400 uppercase tracking-widest block">Lectures Feed Portal</span>
-              <h2 class="text-lg font-bold text-slate-100 mt-1">\${courseName}</h2>
-              <p class="text-slate-500 text-xs mt-0.5">Explore listed modules below. Select any chapter to access online classes and PDF resources.</p>
+        const isAddedInMyList = appState.myBatches.some(b => String(b.courseId) === String(courseId));
+
+        let html = `
+          <div class="relative p-6 bg-gradient-to-r from-slate-900 to-slate-900/60 border border-slate-800/80 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <span class="text-[9px] font-extrabold text-violet-400 uppercase tracking-widest block">Lectures Feed Portal</span>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-100 leading-tight">${courseName}</h2>
+              <p class="text-slate-500 text-xs">Explore course chapters. Access videos and complete PDF study material.</p>
             </div>
-            <div class="flex items-center space-x-3">
-              <!-- Add to My Batches Quick Button inside view -->
-              \${renderQuickLockerButton(foundCourse)}
-            </div>
+            
+            <button onclick='toggleQuickBatch(${JSON.stringify(foundCourse).replace(/'/g, "&apos;")})'
+                    id="quick-add-action"
+                    class="px-5 py-2.5 rounded-xl text-xs font-bold tracking-wide flex items-center space-x-2 transition-all ${isAddedInMyList ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/20' : 'bg-brand-600 hover:bg-brand-500 text-white'}">
+              ${isAddedInMyList ? '<i class="fa-solid fa-circle-check"></i><span>Saved to My Batches</span>' : '<i class="fa-solid fa-plus"></i><span>Save to My Batches</span>'}
+            </button>
           </div>
 
           <div class="space-y-6">
-        \`;
+        `;
 
         for (const [categoryName, dataObj] of Object.entries(grouped)) {
-          html += \`
-            <div class="bg-slate-900/40 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-              <div class="px-5 py-4 bg-slate-900 border-b border-slate-800/80 flex items-center space-x-3">
-                <span class="w-8 h-8 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center text-sm font-bold border border-brand-500/15">
-                  <i class="fa-solid fa-folder-closed"></i>
+          html += `
+            <div class="bg-slate-900/30 border border-slate-800 rounded-2xl overflow-hidden">
+              <div class="px-5 py-4 bg-[#121826] border-b border-slate-800/80 flex items-center space-x-3">
+                <span class="w-8 h-8 bg-brand-950 text-brand-400 rounded-lg flex items-center justify-center text-xs font-bold border border-brand-800">
+                  <i class="fa-solid fa-folder"></i>
                 </span>
-                <h3 class="text-sm font-bold text-slate-200">\${categoryName}</h3>
+                <h3 class="text-xs sm:text-sm font-bold text-slate-200">${categoryName}</h3>
               </div>
-              <div class="divide-y divide-slate-800/60">
-          \`;
+              <div class="divide-y divide-slate-800/40 bg-[#0c101a]/40">
+          `;
 
           dataObj.subtopics.forEach(sub => {
-            html += \`
-              <a href="#/course/\${courseId}/chapter/\${sub.categoryId}/\${sub.subCategoryId}" 
-                 class="px-5 py-4 flex items-center justify-between hover:bg-slate-900/60 transition-colors group">
-                <div class="flex items-center space-x-4">
-                  <span class="text-slate-500 group-hover:text-violet-400 transition-colors">
-                    <i class="fa-regular fa-circle-play text-sm"></i>
+            html += `
+              <a href="#/course/${courseId}/chapter/${sub.categoryId}/${sub.subCategoryId}" 
+                 class="px-5 py-4 flex items-center justify-between hover:bg-slate-900/60 transition-all duration-200 group">
+                <div class="flex items-center space-x-4 pr-4">
+                  <span class="text-slate-500 group-hover:text-brand-300 transition-colors">
+                    <i class="fa-regular fa-circle-play text-xs sm:text-sm"></i>
                   </span>
-                  <span class="text-xs font-semibold text-slate-300 group-hover:text-slate-100 transition-colors">
-                    \${sub.subCategoryName}
+                  <span class="text-xs font-semibold text-slate-300 group-hover:text-slate-100 transition-colors line-clamp-1">
+                    ${sub.subCategoryName}
                   </span>
                 </div>
-                <div class="flex items-center space-x-2 text-slate-500 group-hover:text-slate-300 transition-colors text-xs">
-                  <span>Enter Chapter</span>
-                  <i class="fa-solid fa-angle-right text-[10px]"></i>
+                <div class="flex items-center space-x-1.5 text-slate-500 group-hover:text-slate-300 transition-all text-xs shrink-0">
+                  <span>Enter Lectures</span>
+                  <i class="fa-solid fa-chevron-right text-[9px] group-hover:translate-x-0.5 transition-transform"></i>
                 </div>
               </a>
-            \`;
+            `;
           });
 
-          html += \`
+          html += `
               </div>
             </div>
-          \`;
+          `;
         }
 
-        html += \`</div>\`;
-        container.innerHTML = html;
+        html += `</div>`;
+        viewport.innerHTML = html;
 
       } catch (err) {
-        renderError('view-container', "Failed communicating chapters. Reload stream link.", '#/course/' + courseId);
+        showFailedState('dynamic-viewport', err.message, '#/course/' + courseId);
       }
     }
 
-    function renderQuickLockerButton(foundCourse) {
-      if (!foundCourse) return "";
-      const isAdded = state.myBatches.some(b => String(b.courseId) === String(foundCourse.courseId));
-      
-      return \`
-        <button onclick="toggleMyBatchRegisterInsideChapters(\${JSON.stringify(foundCourse).replace(/"/g, '&quot;')})" 
-                id="chapter-quick-add"
-                class="px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-2 border transition-all \${isAdded ? 'bg-emerald-950/30 text-emerald-400 border-emerald-500/20' : 'bg-brand-600 hover:bg-brand-500 text-white border-transparent'}">
-          \${isAdded ? '<i class="fa-solid fa-check"></i><span>Locker Saved</span>' : '<i class="fa-solid fa-plus"></i><span>Save Batch</span>'}
-        </button>
-      \`;
-    }
+    function toggleQuickBatch(courseObj) {
+      if (!courseObj) return;
+      const index = appState.myBatches.findIndex(b => String(b.courseId) === String(courseObj.courseId));
+      const btn = document.getElementById('quick-add-action');
 
-    function toggleMyBatchRegisterInsideChapters(courseObj) {
-      const index = state.myBatches.findIndex(b => String(b.courseId) === String(courseObj.courseId));
-      const btn = document.getElementById('chapter-quick-add');
-      
       if (index > -1) {
-        state.myBatches.splice(index, 1);
-        saveLocalStorage();
+        appState.myBatches.splice(index, 1);
+        saveDB();
+        showToast("Removed from Dashboard List");
         if (btn) {
-          btn.className = "px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-white border border-transparent transition-all";
-          btn.innerHTML = '<i class="fa-solid fa-plus"></i><span>Save Batch</span>';
+          btn.className = "px-5 py-2.5 rounded-xl text-xs font-bold tracking-wide flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-white transition-all";
+          btn.innerHTML = '<i class="fa-solid fa-plus"></i><span>Save to My Batches</span>';
         }
       } else {
-        state.myBatches.push(courseObj);
-        saveLocalStorage();
+        appState.myBatches.push(courseObj);
+        saveDB();
+        showToast("Pinned to Dashboard!");
         if (btn) {
-          btn.className = "px-4 py-2 rounded-xl text-xs font-bold flex items-center space-x-2 bg-emerald-950/30 text-emerald-400 border border-emerald-500/20 transition-all";
-          btn.innerHTML = '<i class="fa-solid fa-check"></i><span>Locker Saved</span>';
+          btn.className = "px-5 py-2.5 rounded-xl text-xs font-bold tracking-wide flex items-center space-x-2 bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 transition-all";
+          btn.innerHTML = '<i class="fa-solid fa-circle-check"></i><span>Saved to My Batches</span>';
         }
       }
     }
 
-    // ==========================================
-    // VIEW 5: CHAPTER LESSONS (VIDEOS & PDFS)
-    // ==========================================
-    async function viewChapterLessons(courseId, categoryId, subCategoryId) {
-      renderLoading('view-container');
+    // =========================================================================
+    //                    VIEW 5: CHAPTER LESSONS (VIDEOS FEED)
+    // =========================================================================
+    async function renderChapterLessons(courseId, categoryId, subCategoryId) {
+      showLoader();
 
       try {
-        // Load parent outline metadata context
         let courseName = "Course Outline";
         let foundCourse = null;
-        Object.values(state.coursesCache).flat().forEach(c => {
+        Object.values(appState.courseCache).flat().forEach(c => {
           if (c && String(c.courseId) === String(courseId)) foundCourse = c;
         });
         if (!foundCourse) {
-          foundCourse = state.myBatches.find(b => String(b.courseId) === String(courseId));
+          foundCourse = appState.myBatches.find(b => String(b.courseId) === String(courseId));
         }
         if (foundCourse) courseName = foundCourse.courseName;
 
-        // Resolve chapter name context
-        let chapterName = "Topic Lectures";
-        if (state.chaptersCache[courseId]) {
-          const matchedChapter = state.chaptersCache[courseId].find(
+        let chapterName = "Lessons Feed";
+        if (appState.structureCache[courseId]) {
+          const matchedChapter = appState.structureCache[courseId].find(
             s => String(s.categoryId) === String(categoryId) && String(s.subCategoryId) === String(subCategoryId)
           );
           if (matchedChapter) chapterName = matchedChapter.subCategoryName;
         }
 
         setBreadcrumbs([
-          { name: 'Explore Batches', link: '#/all-courses' },
+          { name: 'All Batches', link: '#/all-courses' },
           { name: courseName, link: '#/course/' + courseId },
           { name: chapterName, link: '#' }
         ]);
 
-        const res = await apiFetch(\`/api/course-videos?courseId=\${courseId}&categoryId=\${categoryId}&subCategoryId=\${subCategoryId}\`);
-        const videos = res?.data?.courseVideo || [];
-        const container = document.getElementById('view-container');
+        const res = await fetch(`/api/getCourseVideos?courseId=${courseId}&categoryId=${categoryId}&subCategoryId=${subCategoryId}`);
+        const data = await res.json();
+        const videos = data?.data?.courseVideo || [];
 
-        if (!videos || videos.length === 0) {
-          container.innerHTML = \`
-            <div class="text-center py-20 border border-dashed border-slate-800 rounded-2xl bg-slate-950/40 max-w-xl mx-auto">
-              <div class="w-16 h-16 bg-slate-900/60 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-800">
-                <i class="fa-regular fa-file-video text-slate-500 text-xl"></i>
+        const viewport = document.getElementById('dynamic-viewport');
+        if (!viewport) return;
+
+        if (videos.length === 0) {
+          viewport.innerHTML = `
+            <div class="text-center py-20 border border-dashed border-slate-800 rounded-3xl bg-slate-950/30 max-w-xl mx-auto">
+              <div class="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-800">
+                <i class="fa-regular fa-file-video text-slate-500 text-lg"></i>
               </div>
-              <h4 class="text-slate-300 font-bold text-base">Lectures Commencing Soon</h4>
-              <p class="text-slate-500 text-xs mt-1 max-w-xs mx-auto">No published media feeds or PDF notes are present inside this category directory.</p>
-              <a href="#/course/\${courseId}" class="mt-6 px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 rounded-lg inline-block hover:bg-slate-800">
-                <i class="fa-solid fa-arrow-left mr-1.5"></i>Return to Syllabus
+              <h4 class="text-slate-300 font-bold text-sm">Lectures Unreleased</h4>
+              <p class="text-slate-500 text-xs mt-1.5 max-w-xs mx-auto">Sessions under this subchapter have not been synchronized yet.</p>
+              <a href="#/course/${courseId}" class="mt-5 px-4 py-2 bg-slate-900 border border-slate-800 text-xs font-bold text-slate-300 rounded-xl inline-block hover:bg-slate-800">
+                <i class="fa-solid fa-chevron-left mr-1.5"></i>Return to Chapters
               </a>
             </div>
-          \`;
+          `;
           return;
         }
 
-        let html = \`
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <span class="text-[10px] font-bold text-violet-400 uppercase tracking-widest block">Chapter Streams Directory</span>
-              <h2 class="text-lg font-bold text-slate-200 mt-0.5">\${chapterName}</h2>
-              <p class="text-slate-500 text-xs">Access lessons in chronological order. Interactive YouTube streams and notes integrated.</p>
+        let html = `
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="space-y-1">
+              <span class="text-[9px] font-extrabold text-violet-400 uppercase tracking-widest block">Chapter Video Archives</span>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-200 leading-tight">${chapterName}</h2>
+              <p class="text-slate-500 text-xs">Access video lectures chronological to their live dates alongside reference board sheets.</p>
             </div>
-            <a href="#/course/\${courseId}" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-300 rounded-xl transition-colors inline-flex items-center space-x-1.5">
-              <i class="fa-solid fa-arrow-left"></i>
+            
+            <a href="#/course/${courseId}" class="px-4 py-2 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-xs font-bold text-slate-300 rounded-xl transition-colors flex items-center space-x-1.5 shrink-0 self-start sm:self-center">
+              <i class="fa-solid fa-chevron-left"></i>
               <span>Back to Syllabus</span>
             </a>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        \`;
+        `;
 
-        // Loop array chronologically
-        const chronologicalVideos = [...videos].reverse();
+        // Reverse sequence of array to write chronologically (Oldest first)
+        const chronological = [...videos].reverse();
 
-        chronologicalVideos.forEach(cv => {
-          const title = cv.title || 'Untitled Session';
-          const vlink = cv.url || cv.Url || '';
-          const plink = cv.pdfUrl || '';
-          const dateStr = cv.eventDateTime || '';
-          const dateFormatted = formatDate(dateStr);
+        chronological.forEach(video => {
+          const title = video.title || 'Live Interactive Class Session';
+          const videoLink = video.url || video.Url || '';
+          const pdfLink = video.pdfUrl || '';
+          const rawDate = video.eventDateTime || '';
+          const displayDate = formatDisplayDate(rawDate);
           
-          const thumbImg = getYoutubeThumbnail(vlink);
+          const videoThumb = getYTThumb(videoLink);
 
-          html += \`
-            <div class="group bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden card-glowing flex flex-col h-full">
-              <!-- Thumbnail Wrapper -->
+          html += `
+            <div class="group relative premium-card rounded-2xl overflow-hidden flex flex-col justify-between h-full">
+              <!-- Thumbnail Container -->
               <div class="relative aspect-video bg-black overflow-hidden">
-                <img src="\${thumbImg}" alt="\${title}" class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300">
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/20 to-transparent"></div>
+                <img src="${videoThumb}" alt="${title}" class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#080c14] via-[#080c14]/20 to-transparent"></div>
                 
-                \${vlink ? \`
-                  <!-- Floating Play Indicator Overlay -->
-                  <button onclick="playVideo('\${vlink}', '\${title.replace(/'/g, "\\'")}')" 
-                          class="absolute inset-0 m-auto w-12 h-12 bg-brand-600/95 hover:bg-brand-500 rounded-full flex items-center justify-center text-white text-sm shadow-xl scale-95 group-hover:scale-100 transition-all border border-brand-400/20">
+                ${videoLink ? `
+                  <button onclick="launchVideo('${videoLink}', '${title.replace(/'/g, "\\'")}')" 
+                          class="absolute inset-0 m-auto w-12 h-12 bg-brand-600 hover:bg-brand-500 rounded-full flex items-center justify-center text-white text-sm shadow-xl hover:scale-105 transition-all border border-brand-400/20">
                     <i class="fa-solid fa-play translate-x-0.5"></i>
                   </button>
-                \` : ''}
+                ` : ''}
 
-                <!-- Class Session Stamp Tag -->
-                \${dateFormatted ? \`
+                ${displayDate ? `
                   <div class="absolute bottom-3 left-3">
-                    <span class="px-2 py-0.5 bg-slate-950/80 blur-glass text-[10px] font-semibold text-slate-300 rounded-md border border-slate-800/50">
-                      \${dateFormatted}
+                    <span class="px-2 py-0.5 bg-slate-950/80 text-[10px] font-semibold text-slate-300 rounded-lg border border-slate-800/50">
+                      ${displayDate}
                     </span>
                   </div>
-                \` : ''}
+                ` : ''}
               </div>
 
-              <!-- Main Card content space -->
+              <!-- Content Body -->
               <div class="p-5 flex-grow flex flex-col justify-between">
                 <div>
-                  <h3 class="text-xs font-bold text-slate-100 line-clamp-2 leading-relaxed tracking-wide mb-3">
-                    \${title}
+                  <h3 class="text-xs font-bold text-slate-200 line-clamp-2 leading-relaxed tracking-wide mb-4">
+                    ${title}
                   </h3>
                 </div>
 
-                <!-- Footer Buttons -->
-                <div class="grid grid-cols-2 gap-2 border-t border-slate-800/80 pt-4">
-                  \${vlink ? \`
-                    <button onclick="playVideo('\${vlink}', '\${title.replace(/'/g, "\\'")}')" 
-                            class="py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-colors shadow-lg shadow-brand-600/10">
+                <div class="grid grid-cols-2 gap-2.5 border-t border-slate-800/60 pt-4">
+                  ${videoLink ? `
+                    <button onclick="launchVideo('${videoLink}', '${title.replace(/'/g, "\\'")}')" 
+                            class="py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-colors shadow-lg shadow-brand-600/10">
                       <i class="fa-regular fa-circle-play"></i>
-                      <span>Watch video</span>
+                      <span>Watch</span>
                     </button>
-                  \` : \`
-                    <span class="py-2.5 bg-slate-800/40 text-slate-500 rounded-xl text-xs font-semibold text-center select-none cursor-not-allowed">
-                      No Video Link
-                    </span>
-                  \`}
+                  ` : `
+                    <button disabled class="py-2.5 bg-slate-900 text-slate-600 rounded-xl text-xs font-bold select-none cursor-not-allowed">
+                      No Media
+                    </button>
+                  `}
 
-                  \${plink ? \`
-                    <a href="\${plink}" target="_blank" 
-                       class="py-2.5 bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-200 border border-slate-700/50 font-semibold rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-colors">
+                  ${pdfLink ? `
+                    <a href="${pdfLink}" target="_blank" 
+                       class="py-2.5 bg-[#121826] hover:bg-slate-800 hover:text-white text-slate-300 border border-slate-800 hover:border-slate-700 font-bold rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-colors">
                       <i class="fa-regular fa-file-pdf text-red-400"></i>
-                      <span>Board Notes</span>
+                      <span>Notes PDF</span>
                     </a>
-                  \` : \`
-                    <span class="py-2.5 bg-slate-850/30 text-slate-600 rounded-xl text-xs font-semibold text-center select-none cursor-not-allowed">
-                      No PDF Notes
-                    </span>
-                  \`}
+                  ` : `
+                    <button disabled class="py-2.5 bg-slate-900/40 text-slate-600 rounded-xl text-xs font-bold select-none cursor-not-allowed">
+                      No Notes
+                    </button>
+                  `}
                 </div>
               </div>
             </div>
-          \`;
+          `;
         });
 
-        html += \`</div>\`;
-        container.innerHTML = html;
+        html += `</div>`;
+        viewport.innerHTML = html;
 
       } catch (err) {
-        renderError('view-container', "Failed downloading chapter lessons. Refresh network module.", '#/course/' + courseId + '/chapter/' + categoryId + '/' + subCategoryId);
+        showFailedState('dynamic-viewport', err.message, `#/course/${courseId}/chapter/${categoryId}/${subCategoryId}`);
       }
     }
 
-    // Initialize listeners when document mounts
+    // =========================================================================
+    //                        MODAL MEDIA CONTROLLERS
+    // =========================================================================
+    function launchVideo(url, title) {
+      const ytId = getYTID(url);
+      if (!ytId) {
+        // Fallback for non-youtube links
+        window.open(url, '_blank');
+        return;
+      }
+
+      const modal = document.getElementById('player-modal');
+      const iframe = document.getElementById('player-iframe');
+      const titleDisplay = document.getElementById('player-title');
+      const ytButton = document.getElementById('player-youtube-btn');
+
+      if (!modal || !iframe) return;
+
+      titleDisplay.innerText = title;
+      iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`;
+      ytButton.href = url;
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closePlayer() {
+      const modal = document.getElementById('player-modal');
+      const iframe = document.getElementById('player-iframe');
+      
+      if (!modal || !iframe) return;
+      
+      iframe.src = "";
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // =========================================================================
+    //                        INITIAL MOUNT LISTENERS
+    // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
-      initLocalStorage();
-      runRouter();
+      initDB();
+      handleHashRouting();
     });
-    window.addEventListener('hashchange', runRouter);
+
+    window.addEventListener('hashchange', handleHashRouting);
   </script>
 </body>
 </html>`;
