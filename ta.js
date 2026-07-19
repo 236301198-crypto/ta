@@ -39,7 +39,7 @@ export default {
 
 /**
  * Intercepts incoming API calls, injects the secret token on the server-side, 
- * packages the payload into a Classwalla-compatible form-data and fetches the remote server.
+ * packages the payload into a Classwalla-compatible form-data/urlencoded body and fetches the remote server.
  */
 async function handleAPIRequest(request, path) {
   const targetUrl = "https://backend.classwalla.com/" + path;
@@ -59,20 +59,35 @@ async function handleAPIRequest(request, path) {
     token: SECRET_TOKEN
   };
 
-  const formData = new FormData();
-  formData.append('body', JSON.stringify(payload));
-
-  const headers = new Headers();
+  const jsonString = JSON.stringify(payload);
+  
+  let headers = new Headers();
   headers.set("Host", "backend.classwalla.com");
   headers.set("Connection", "Keep-Alive");
-  headers.set("User-Agent", "okhttp/5.3.2");
   headers.set("Accept-Encoding", "gzip");
+
+  let requestBody;
+
+  // Determine Content-Type based on path to match Python scraper APIs perfectly
+  if (path.includes("coursecategory/")) {
+    headers.set("User-Agent", "okhttp/5.3.2");
+    const boundary = "f30abafb-92e2-4b52-bf44-12df495babc3";
+    headers.set("Content-Type", "multipart/form-data; boundary=" + boundary);
+    requestBody = "--" + boundary + "\r\n" +
+                  "Content-Disposition: form-data; name=\"body\"\r\n\r\n" +
+                  jsonString + "\r\n" +
+                  "--" + boundary + "--\r\n";
+  } else {
+    headers.set("User-Agent", "okhttp/4.9.2");
+    headers.set("Content-Type", "application/x-www-form-urlencoded");
+    requestBody = "body=" + encodeURIComponent(jsonString);
+  }
 
   try {
     const response = await fetch(targetUrl, {
       method: "POST",
       headers: headers,
-      body: formData
+      body: requestBody
     });
 
     const responseHeaders = new Headers(response.headers);
@@ -216,7 +231,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
                 <!-- Simple Clean Navigation Button (Header) -->
                 <div class="flex items-center gap-2">
-                    <button onclick="TA.Router.navigate('#/all-courses')" class="hidden sm:flex bg-gradient-to-r from-academy-600 to-indigo-600 hover:from-academy-500 hover:to-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-lg items-center gap-1.5">
+                    <button id="header-btn-browse" onclick="TA.Router.navigate('#/all-courses')" class="bg-gradient-to-r from-academy-600 to-indigo-600 hover:from-academy-500 hover:to-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-lg flex items-center gap-1.5">
                         <i class="fa-solid fa-compass"></i> Explore Courses
                     </button>
                 </div>
@@ -225,7 +240,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
         </div>
     </nav>
 
-    <!-- MAIN FRAME LAYOUT -->
+    <!-- MAIN FRAME LAYOUT (FULL SCREEN FLUID SPACE) -->
     <div class="flex-1 flex overflow-hidden w-full">
         
         <!-- SIDEBAR (DESKTOP) -->
@@ -269,7 +284,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             </div>
         </aside>
 
-        <!-- MAIN WORKSPACE -->
+        <!-- MAIN WORKSPACE (FULL WIDTH FLUID CONTAINER) -->
         <main class="flex-1 flex flex-col overflow-y-auto bg-slate-950 relative w-full">
             
             <!-- MASTER CONTROLS / TITLE BAR -->
@@ -291,14 +306,14 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- VIEW 1: MY BATCHES (DASHBOARD) -->
-            <div id="view-my-batches" class="view-panel p-4 sm:p-6 lg:p-8 w-full mx-auto space-y-6">
+            <!-- VIEW 1: MY BATCHES (DASHBOARD) - OCCUPIES FULL-SCREEN WIDTH -->
+            <div id="view-my-batches" class="view-panel p-4 sm:p-6 lg:p-8 w-full space-y-6">
                 <!-- Welcome Card -->
                 <div class="bg-gradient-to-r from-slate-900 via-indigo-950/10 to-slate-900 p-6 rounded-3xl border border-indigo-950/20 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
                     <div class="space-y-1.5 relative z-10">
                         <span class="text-[9px] font-bold text-academy-400 bg-academy-950/60 px-3 py-1 rounded-full uppercase tracking-wider border border-academy-900/20">Classroom Portal</span>
                         <h3 class="text-xl sm:text-2xl font-black text-white">Welcome Back Student!</h3>
-                        <p class="text-xs text-slate-400 max-w-lg">अपनी कक्षाएं चुनें और बिना किसी बाधा के अपनी परीक्षा की तैयारी सुचारू रूप से शुरू करें।</p>
+                        <p class="text-xs text-slate-400 max-w-none">अपनी कक्षाएं चुनें और बिना किसी बाधा के अपनी परीक्षा की तैयारी सुचारू रूप से शुरू करें।</p>
                     </div>
                     <div class="flex gap-3 relative z-10">
                         <div class="bg-slate-950/85 border border-slate-900 p-4 rounded-2xl text-center min-w-[85px]">
@@ -327,20 +342,21 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 </div>
 
                 <!-- My Batches Grid -->
-                <div id="my-batches-grid-canvas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                <div id="my-batches-grid-canvas" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 w-full">
                     <!-- Dynamic -->
                 </div>
             </div>
 
             <!-- VIEW 2: EXPLORE CATEGORIES (ALL COURSES ENTRY SCREEN) -->
-            <div id="view-categories" class="view-panel hidden p-4 sm:p-6 lg:p-8 w-full mx-auto space-y-6">
+            <div id="view-categories" class="view-panel hidden p-4 sm:p-6 lg:p-8 w-full space-y-6">
                 <div class="bg-slate-900/40 border border-slate-900 p-6 rounded-3xl space-y-3">
                     <h3 class="text-lg font-bold text-white">Choose Learning Path</h3>
                     <p class="text-xs text-slate-400">अपनी पसंदीदा कैटेगरी का चयन करें और उसके अंतर्गत उपलब्ध विशेष कोर्सेज देखें।</p>
                 </div>
 
                 <!-- Loader -->
-                <div id="categories-shimmer" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                <div id="categories-shimmer" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full">
+                    <div class="shimmer h-32 rounded-2xl"></div>
                     <div class="shimmer h-32 rounded-2xl"></div>
                     <div class="shimmer h-32 rounded-2xl"></div>
                     <div class="shimmer h-32 rounded-2xl"></div>
@@ -348,13 +364,13 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 </div>
 
                 <!-- Categories Grid -->
-                <div id="categories-selection-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                <div id="categories-selection-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full">
                     <!-- Dynamic -->
                 </div>
             </div>
 
             <!-- VIEW 3: COURSE LIST UNDER SELECTION -->
-            <div id="view-category-courses" class="view-panel hidden p-4 sm:p-6 lg:p-8 w-full mx-auto space-y-6">
+            <div id="view-category-courses" class="view-panel hidden p-4 sm:p-6 lg:p-8 w-full space-y-6">
                 <div class="flex items-center justify-between border-b border-slate-900 pb-4">
                     <div class="space-y-1">
                         <h3 id="category-panel-title" class="text-md sm:text-lg font-extrabold text-white">Courses</h3>
@@ -366,13 +382,14 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 </div>
 
                 <!-- Loader -->
-                <div id="courses-shimmer" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                <div id="courses-shimmer" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full">
+                    <div class="shimmer h-72 rounded-3xl"></div>
                     <div class="shimmer h-72 rounded-3xl"></div>
                     <div class="shimmer h-72 rounded-3xl"></div>
                 </div>
 
                 <!-- Courses Output -->
-                <div id="courses-display-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                <div id="courses-display-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 w-full">
                     <!-- Dynamic -->
                 </div>
             </div>
@@ -421,7 +438,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                         <div class="p-4 border-b border-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="flex items-center gap-3">
                                 <!-- Mobile Only Back-To-Syllabus Button -->
-                                <button onclick="TA.UI.showSyllabusIndexMobile()" class="lg:hidden bg-slate-900 hover:bg-slate-800 p-2 rounded-xl border border-slate-800 text-slate-300">
+                                <button onclick="TA.UI.showSyllabusIndexMobile()" class="lg:hidden bg-slate-900 hover:bg-slate-850 p-2 rounded-xl border border-slate-800 text-slate-300">
                                     <i class="fa-solid fa-chevron-left mr-1"></i> Chapters
                                 </button>
                                 <div>
@@ -450,7 +467,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                                 <p class="text-xs">पढ़ना शुरू करने के लिए लेफ्ट साइडबार से कोई भी chapter लोड करें।</p>
                             </div>
 
-                            <div id="classroom-lectures-output-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                            <div id="classroom-lectures-output-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 w-full">
                                 <!-- Dynamic Lectures -->
                             </div>
                         </div>
@@ -480,7 +497,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
     <!-- THEATER MODE POPUP PLAYER MODAL -->
     <div id="video-theater-modal" class="hidden fixed inset-0 z-50 bg-slate-950/98 backdrop-blur flex items-center justify-center p-4">
         <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col relative">
-            <button onclick="TA.UI.closeTheaterMode()" class="absolute top-4 right-4 z-10 bg-slate-950/80 hover:bg-slate-800 p-2 rounded-full border border-slate-850 text-slate-300 hover:text-white transition-all">
+            <button onclick="TA.UI.closeTheaterMode()" class="absolute top-4 right-4 z-10 bg-slate-950/80 hover:bg-slate-855 p-2 rounded-full border border-slate-850 text-slate-300 hover:text-white transition-all">
                 <i class="fa-solid fa-xmark text-md"></i>
             </button>
 
@@ -677,16 +694,38 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     grid.innerHTML = '';
 
                     try {
-                        const json = await this.callPost('coursecategory/v1/getLayoutV2', {
-                            candidateId: "806386",
+                        // STEP 2: Fetch Category Layout to get subcategoryId
+                        const layoutJson = await this.callPost('coursecategory/v1/getLayoutV2', {
+                            candidateId: "",
                             categoryId: parseInt(categoryId),
                             companyId: 46,
                             limit: "100",
                             offset: "0"
                         });
-                        appState.courses[categoryId] = json?.data?.layout?.[0]?.content || [];
+
+                        const subcategoryId = layoutJson?.data?.layout?.[0]?.id;
+                        if (!subcategoryId) {
+                            throw new Error("Subcategory ID not found in Classwalla layout.");
+                        }
+
+                        // STEP 3: Fetch Courses by Subcategory ID
+                        const subcatJson = await this.callPost('coursecategory/v1/getCoursesBySubCat', {
+                            limit: "100",
+                            offset: "0",
+                            searchString: "",
+                            subcatId: String(subcategoryId)
+                        });
+
+                        let courseList = [];
+                        if (subcatJson?.data?.candidateCourseList) {
+                            courseList = subcatJson.data.candidateCourseList;
+                        } else if (subcatJson?.data?.layout?.[0]?.content) {
+                            courseList = subcatJson.data.layout[0].content;
+                        }
+
+                        appState.courses[categoryId] = courseList;
                         shimmer.classList.add('hidden');
-                        TA.UI.renderCourses(appState.courses[categoryId]);
+                        TA.UI.renderCourses(courseList);
                     } catch (e) {
                         console.error(e);
                         shimmer.classList.add('hidden');
@@ -780,7 +819,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 },
 
                 updateNavHighlighter: function(sidebarId, mobId) {
-                    document.querySelectorAll('aside button, nav button').forEach(function(btn) {
+                    document.querySelectorAll('aside button, nav navigation').forEach(function(btn) {
                         btn.className = "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-4 py-1 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all";
                     });
 
