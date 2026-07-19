@@ -1,18 +1,23 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="scroll-smooth dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Teachers Academy | Premium</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#070B14">
+    <title>Teachers Academy | Premium Learning</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (CDN for standalone usage) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Inter & Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Tailwind Configuration -->
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -20,305 +25,1254 @@
                         display: ['Poppins', 'sans-serif'],
                     },
                     colors: {
-                        dark: '#070B14',
-                        surface: '#111827',
-                        surfaceLight: '#1F2937',
+                        dark: '#05080f',
+                        surface: '#0f1423',
+                        surfaceLight: '#1a2235',
+                        surfaceLighter: '#252f48',
                         primary: '#3B82F6',
-                        accent: '#8B5CF6'
+                        primaryDark: '#2563EB',
+                        accent: '#8B5CF6',
+                        accentLight: '#A78BFA',
+                        success: '#10B981',
+                        danger: '#EF4444',
+                        warning: '#F59E0B'
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s ease-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 3s linear infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
                     }
                 }
             }
         }
     </script>
 
+    <!-- Advanced Custom CSS -->
     <style>
+        :root {
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(15, 20, 35, 0.7);
+            --neon-glow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
         body {
-            background-color: #070B14;
+            background-color: theme('colors.dark');
             color: #F3F4F6;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #070B14; }
-        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #4B5563; }
+        /* 2026 Premium Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: theme('colors.dark'); }
+        ::-webkit-scrollbar-thumb { 
+            background: theme('colors.surfaceLighter'); 
+            border-radius: 20px; 
+            border: 2px solid theme('colors.dark');
+        }
+        ::-webkit-scrollbar-thumb:hover { background: theme('colors.primary'); }
 
-        .glass-panel {
-            background: rgba(31, 41, 55, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+        /* Glassmorphism Utilities */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+        }
+        .glass-card {
+            background: linear-gradient(145deg, rgba(26, 34, 53, 0.8) 0%, rgba(15, 20, 35, 0.9) 100%);
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
+
+        /* Hover Effects */
+        .hover-trigger .hover-target { transition: all 0.3s ease; }
+        .hover-trigger:hover .hover-target { opacity: 1; transform: translateY(0); }
         
-        .card-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.3);
+        .card-lift { transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease; }
+        .card-lift:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 20px 40px -10px rgba(139, 92, 246, 0.2);
             border-color: rgba(139, 92, 246, 0.4);
+            z-index: 10;
         }
 
-        .loader {
-            width: 48px;
-            height: 48px;
+        /* Loaders & Skeletons */
+        .skeleton {
+            background: linear-gradient(90deg, theme('colors.surfaceLight') 25%, theme('colors.surfaceLighter') 50%, theme('colors.surfaceLight') 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 0.5rem;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .spinner-ring {
+            width: 40px; height: 40px;
             border-radius: 50%;
-            display: inline-block;
-            border-top: 3px solid #8B5CF6;
-            border-right: 3px solid transparent;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
-        }
-        @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            border: 3px solid rgba(139, 92, 246, 0.2);
+            border-top-color: theme('colors.accent');
+            animation: spin 1s linear infinite;
         }
 
-        #sidebar { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .sidebar-open { transform: translateX(0) !important; }
-        .sidebar-overlay-open { opacity: 1 !important; pointer-events: auto !important; }
+        /* Layout State Classes */
+        .sidebar-open #sidebar { transform: translateX(0); }
+        .sidebar-open #sidebar-overlay { opacity: 1; pointer-events: auto; }
+        .hide { display: none !important; }
+        
+        /* Video Wrapper */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 1rem;
+            background: #000;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .video-container iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;
+        }
+
+        /* Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none; background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: theme('colors.primary'); cursor: pointer; margin-top: -6px;
+            box-shadow: var(--neon-glow);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer;
+            background: theme('colors.surfaceLighter'); border-radius: 2px;
+        }
+
+        /* Background Blobs for Visual Depth */
+        .bg-blob {
+            position: absolute; filter: blur(80px); z-index: -1; opacity: 0.4; border-radius: 50%;
+        }
+        .blob-1 { top: -10%; left: -10%; width: 40vw; height: 40vw; background: rgba(59, 130, 246, 0.3); animation-delay: 0s; }
+        .blob-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: rgba(139, 92, 246, 0.2); animation-delay: 2s; }
+        .blob-3 { top: 40%; left: 30%; width: 30vw; height: 30vw; background: rgba(16, 185, 129, 0.15); animation-delay: 4s; }
     </style>
 </head>
-<body class="antialiased flex flex-col min-h-screen relative">
+<body class="relative min-h-screen flex flex-col font-sans selection:bg-primary selection:text-white">
 
-    <!-- Top Branding Bar -->
-    <div class="w-full bg-black/90 text-center py-1.5 z-[60] relative border-b border-white/5">
-        <span class="text-[9px] font-mono tracking-[0.2em] text-accent/90 uppercase bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-accent">
+    <!-- Ambient Background -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+        <div class="bg-blob blob-1 animate-blob"></div>
+        <div class="bg-blob blob-2 animate-blob"></div>
+        <div class="bg-blob blob-3 animate-blob"></div>
+        <!-- Grid overlay -->
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wMykiLz48L3N2Zz4=')] opacity-50"></div>
+    </div>
+
+    <!-- Top Branding Strip -->
+    <div class="w-full bg-black text-center py-1.5 z-[70] relative border-b border-white/5 flex items-center justify-center gap-2">
+        <div class="w-1.5 h-1.5 rounded-full bg-accent animate-ping"></div>
+        <span class="text-[10px] md:text-xs font-mono tracking-[0.25em] text-accent/90 uppercase bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-accent to-purple-500">
             Premium Branding by Naveen
         </span>
     </div>
 
-    <!-- Header -->
-    <header class="sticky top-0 z-50 glass-panel border-b border-white/10 px-4 py-3 w-full shadow-lg">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <button id="menu-btn" onclick="toggleSidebar()" class="p-2 -ml-2 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition-all">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    <!-- Main Navigation Header -->
+    <header class="sticky top-0 z-50 glass border-b border-white/5 shadow-2xl transition-all duration-300" id="main-header">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex items-center justify-between">
+            
+            <!-- Left: Menu & Logo -->
+            <div class="flex items-center gap-3 md:gap-5">
+                <button onclick="ui.toggleSidebar()" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all group focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    <svg class="w-5 h-5 md:w-6 md:h-6 transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                    </svg>
                 </button>
                 
-                <div class="flex items-center gap-3 cursor-pointer" onclick="navigate('#/my-batches')">
-                    <img src="https://play-lh.googleusercontent.com/x8XlorPIOcczsf2PNlrcW03SkziHQs-tqTMQegTMfWrthvLOmADAnbdxSKAJBaJN8CB8tuLQ80L1mmtb-YAHtNU" 
-                         alt="Logo" class="w-10 h-10 rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.3)] border border-white/10">
-                    <h1 class="text-xl md:text-2xl font-bold font-display tracking-wide uppercase bg-gradient-to-r from-blue-400 via-indigo-400 to-accent bg-clip-text text-transparent hidden sm:block">
-                        Teachers Academy
-                    </h1>
+                <div class="flex items-center gap-3 cursor-pointer group" onclick="router.navigate('#/dashboard')">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-primary/40 rounded-xl blur-md group-hover:blur-lg transition-all"></div>
+                        <img src="https://play-lh.googleusercontent.com/x8XlorPIOcczsf2PNlrcW03SkziHQs-tqTMQegTMfWrthvLOmADAnbdxSKAJBaJN8CB8tuLQ80L1mmtb-YAHtNU" 
+                             alt="Teachers Academy Logo" class="relative w-10 h-10 md:w-12 md:h-12 rounded-xl border border-white/20 shadow-lg object-cover">
+                    </div>
+                    <div class="hidden sm:flex flex-col">
+                        <h1 class="text-xl md:text-2xl font-bold font-display tracking-wide uppercase bg-gradient-to-r from-white via-blue-100 to-gray-300 bg-clip-text text-transparent leading-none">
+                            Teachers Academy
+                        </h1>
+                        <span class="text-[10px] text-primary tracking-widest font-semibold uppercase mt-1">Learning Platform</span>
+                    </div>
                 </div>
             </div>
 
-            <button id="back-btn" onclick="goBack()" class="hidden items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium hover:bg-white/10 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> Back
-            </button>
+            <!-- Middle: Global Search (Desktop) -->
+            <div class="hidden lg:flex flex-1 max-w-xl mx-8">
+                <div class="relative w-full group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="global-search" placeholder="Search courses, subjects, or videos..." 
+                           class="w-full bg-surfaceLight/50 border border-white/10 rounded-2xl py-2.5 pl-11 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:bg-surfaceLight transition-all shadow-inner">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <kbd class="hidden xl:inline-block px-2 py-1 text-[10px] font-mono text-gray-400 bg-surfaceLighter rounded border border-white/10">Ctrl K</kbd>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Actions & Profile -->
+            <div class="flex items-center gap-2 md:gap-4">
+                <!-- Mobile Search Icon -->
+                <button class="lg:hidden p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </button>
+                
+                <!-- Notifications -->
+                <button class="relative p-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                    <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-dark"></span>
+                </button>
+
+                <!-- Profile Avatar -->
+                <div class="relative ml-2">
+                    <button class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-primary to-accent p-[2px] cursor-pointer hover:shadow-lg hover:shadow-primary/30 transition-all">
+                        <img src="https://ui-avatars.com/api/?name=Student&background=0f1423&color=fff&rounded=true&bold=true" class="w-full h-full rounded-full border-2 border-dark" alt="Profile">
+                    </button>
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- Sidebar Overlay & Sidebar -->
-    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-surface/95 backdrop-blur-xl border-r border-white/10 z-50 transform -translate-x-full flex flex-col pt-4 shadow-2xl">
-        <div class="px-6 mb-8 mt-2 flex items-center justify-between">
-            <h2 class="text-lg font-bold text-white font-display">Menu</h2>
-            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+    <!-- Sidebar & Overlay -->
+    <div id="sidebar-overlay" onclick="ui.toggleSidebar()" class="fixed inset-0 bg-dark/80 backdrop-blur-sm z-[80] opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-[280px] bg-surface/95 backdrop-blur-2xl border-r border-white/10 z-[90] transform -translate-x-full transition-transform duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col shadow-[20px_0_40px_rgba(0,0,0,0.5)]">
+        
+        <!-- Sidebar Header -->
+        <div class="h-16 md:h-20 border-b border-white/5 flex items-center justify-between px-6 shrink-0">
+            <h2 class="text-xl font-bold font-display text-white tracking-wide">Menu</h2>
+            <button onclick="ui.toggleSidebar()" class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
         </div>
         
-        <div class="px-4 flex flex-col gap-2 flex-grow">
-            <button onclick="navigate('#/my-batches'); toggleSidebar()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-primary/20 text-gray-300 hover:text-primary transition-all group">
-                <div class="p-2 rounded-xl bg-white/5 group-hover:bg-primary/20"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg></div>
-                <span class="font-semibold">My Batches</span>
-            </button>
-            
-            <button onclick="navigate('#/all-courses'); toggleSidebar()" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-accent/20 text-gray-300 hover:text-accent transition-all group">
-                <div class="p-2 rounded-xl bg-white/5 group-hover:bg-accent/20"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg></div>
-                <span class="font-semibold">All Courses</span>
-            </button>
+        <!-- Sidebar Navigation -->
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar" id="nav-links">
+            <!-- Nav links generated by JS to handle active states -->
+        </nav>
+        
+        <!-- Sidebar Footer -->
+        <div class="p-4 border-t border-white/5 shrink-0 bg-surface/50">
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-white/5">
+                <div class="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-white">Pro Plan Active</p>
+                    <p class="text-[10px] text-gray-400">All features unlocked</p>
+                </div>
+            </div>
+            <p class="text-center text-[10px] text-gray-500 mt-4 font-mono">App Build v2.0.26<br>Premium by Naveen</p>
         </div>
-        <div class="p-6 border-t border-white/10 text-center"><p class="text-xs text-gray-500">v2.0.26 Premium Edition</p></div>
     </aside>
 
-    <!-- Main Dynamic Content Container -->
-    <main class="flex-grow w-full max-w-7xl mx-auto p-4 md:p-8">
-        <div id="page-header" class="mb-8 hidden">
-            <h2 id="page-title" class="text-3xl font-bold font-display text-white"></h2>
-            <p id="page-subtitle" class="text-gray-400 mt-2"></p>
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col w-full max-w-[1600px] mx-auto relative z-10">
+        
+        <!-- Dynamic Header Section (Title & Back Button) -->
+        <div id="page-header" class="px-4 sm:px-6 lg:px-8 py-6 md:py-8 flex flex-col md:flex-row md:items-end justify-between gap-4 transition-all duration-500 opacity-0 translate-y-4">
+            <div class="flex items-start gap-4">
+                <button id="back-btn" onclick="router.back()" class="hidden mt-1 p-2.5 rounded-full bg-surfaceLight hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 transition-all hover:scale-105 hover:shadow-lg focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </button>
+                <div>
+                    <h2 id="page-title" class="text-2xl md:text-4xl font-bold font-display text-white tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Loading...</h2>
+                    <p id="page-subtitle" class="text-sm md:text-base text-gray-400 mt-1 md:mt-2 font-medium flex items-center gap-2"></p>
+                </div>
+            </div>
+            <div id="page-actions" class="flex gap-2">
+                <!-- Contextual actions like "Filter", "Sort" injected here -->
+            </div>
         </div>
-        <div id="app-view" class="w-full"></div>
+        
+        <!-- View Container (Where all components render) -->
+        <div id="app-view" class="flex-1 px-4 sm:px-6 lg:px-8 pb-12 transition-opacity duration-300">
+            <!-- Content injected via JS -->
+        </div>
     </main>
 
-    <!-- Global Elements -->
-    <div id="global-loader" class="fixed inset-0 bg-dark/80 backdrop-blur-md z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-        <span class="loader"></span>
-        <p class="mt-4 text-accent font-medium tracking-widest uppercase text-sm animate-pulse">Syncing Data...</p>
+    <!-- Global Floating Elements -->
+    
+    <!-- Full Screen Loader Overlay -->
+    <div id="global-loader" class="fixed inset-0 bg-dark/90 backdrop-blur-md z-[100] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-300">
+        <div class="relative">
+            <div class="spinner-ring"></div>
+            <div class="absolute inset-0 border-3 border-transparent border-t-primary rounded-full animate-[spin_1.5s_linear_infinite_reverse]"></div>
+        </div>
+        <p id="loader-text" class="mt-6 text-white font-medium tracking-widest uppercase text-sm animate-pulse font-display">Syncing Data...</p>
     </div>
 
-    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-300 z-50 glass-panel px-6 py-3 rounded-full flex items-center gap-3 border border-green-500/30">
-        <div class="w-2 h-2 rounded-full bg-green-400 animate-ping"></div>
-        <span id="toast-msg" class="text-white font-medium text-sm">Action successful</span>
+    <!-- Toast Notification System -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[110] flex flex-col gap-3 pointer-events-none">
+        <!-- Toasts injected here -->
     </div>
 
+    <!-- API Status Indicator (Floating Bottom Left) -->
+    <div id="api-status" class="fixed bottom-4 left-4 z-40 flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface/80 backdrop-blur border border-white/10 text-xs font-mono font-medium shadow-lg transition-all hidden">
+        <span class="relative flex h-2 w-2">
+          <span id="api-ping-glow" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+          <span id="api-ping-dot" class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+        </span>
+        <span id="api-status-text" class="text-gray-300">Preview Mode</span>
+    </div>
+
+    <!-- Modals Container -->
+    <div id="modal-root"></div>
+
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT APPLICATION LOGIC (1000+ LINES) -->
+    <!-- ========================================== -->
     <script>
-        // CONFIGURATION
-        const TOKEN = "4fg1iZcgrW2X8QsF0DpX0ekBNZSNmugOWw9TJWVX5cTmYX4il3VIO%2B1lP6eCPAxoj93%2BhuIgNm03oQ1sCIkmv4zjcEdZwiTA5kpS8WG9VH9tQ6nsKQRDDjSzcQCQpASTHpGzOr%2F4vCIOahj4Z%2FMrQ2eud8PtLvIp1xit7EARO18%3D";
+        /**
+         * TEACHERS ACADEMY - PREMIUM CORE ENGINE v2.0.26
+         * Architected by Naveen
+         */
+
+        // --- 1. CORE CONFIGURATION & STATE ---
+        const CONFIG = {
+            VERSION: '2.0.26',
+            BRAND: 'Teachers Academy',
+            TOKEN: "4fg1iZcgrW2X8QsF0DpX0ekBNZSNmugOWw9TJWVX5cTmYX4il3VIO%2B1lP6eCPAxoj93%2BhuIgNm03oQ1sCIkmv4zjcEdZwiTA5kpS8WG9VH9tQ6nsKQRDDjSzcQCQpASTHpGzOr%2F4vCIOahj4Z%2FMrQ2eud8PtLvIp1xit7EARO18%3D",
+            API_BASE: '/api', // Will use proxy/worker endpoint
+            LOCAL_DB_KEY: 'ta_premium_db_v2',
+            THEME_KEY: 'ta_theme_v1'
+        };
+
+        // Navigation Structure
+        const NAV_ITEMS = [
+            { id: 'dashboard', label: 'Dashboard', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>', color: 'primary' },
+            { id: 'my-batches', label: 'My Batches', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>', color: 'success' },
+            { id: 'all-courses', label: 'All Courses', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>', color: 'accent' },
+            { id: 'settings', label: 'Settings', icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>', color: 'warning' },
+        ];
+
+        // Central State Management
+        const state = {
+            currentRoute: '',
+            isApiOffline: false, // Auto-detects if worker backend is not connected
+            cache: {
+                categories: null,
+                courses: {},
+                syllabus: {}
+            },
+            breadcrumbs: []
+        };
+
+        // --- 2. FALLBACK / MOCK DATA (For UI Preview when API fails) ---
+        // Ye data tab use hoga jab standalone HTML run ho rahi ho aur API CORS ki wajah se block ho jaye.
+        const MockData = {
+            categories: [
+                { categoryId: 1, courseCategory: "UPSC CSE Foundation" },
+                { categoryId: 2, courseCategory: "State PCS (UPPSC, BPSC)" },
+                { categoryId: 3, courseCategory: "SSC CGL / CHSL 2026" },
+                { categoryId: 4, courseCategory: "Banking & Insurance" },
+                { categoryId: 5, courseCategory: "Engineering / GATE" },
+                { categoryId: 6, courseCategory: "Medical / NEET Pro" }
+            ],
+            courses: [
+                { courseId: 101, courseName: "UPSC Prelims Crash Course 2026", price: 4999, thumbnail: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=600&h=400" },
+                { courseId: 102, courseName: "History Mains Answer Writing", price: 2999, thumbnail: "https://images.unsplash.com/photo-1461360228754-6e81c478b882?auto=format&fit=crop&q=80&w=600&h=400" },
+                { courseId: 103, courseName: "SSC Math Mastery by Naveen", price: 999, thumbnail: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=600&h=400" }
+            ],
+            syllabus: [
+                { id: 1, categoryName: "Ancient History", subCategory: [{subCategoryId: 11, subCategory: "Indus Valley Civilization"}, {subCategoryId: 12, subCategory: "Vedic Period"}] },
+                { id: 2, categoryName: "Polity", subCategory: [{subCategoryId: 21, subCategory: "Making of Constitution"}, {subCategoryId: 22, subCategory: "Fundamental Rights"}] }
+            ],
+            videos: [
+                { title: "Lec 01: Introduction to Harappa", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", eventDateTime: "2026-07-20 10:00:00" },
+                { title: "Lec 02: Town Planning & Architecture", url: "https://www.youtube.com/watch?v=tgbNymZ7vqY", pdfUrl: "", eventDateTime: "2026-07-21 10:00:00" }
+            ]
+        };
+
+
+        // --- 3. DOM & UI UTILITIES ---
+        const $ = id => document.getElementById(id);
         
-        const state = { view: '', courseTitleCache: {} };
+        const ui = {
+            toggleSidebar: () => {
+                $('sidebar').classList.toggle('sidebar-open');
+                $('sidebar-overlay').classList.toggle('sidebar-overlay-open');
+            },
+            showLoader: (text = "Processing...") => {
+                $('loader-text').innerText = text;
+                $('global-loader').classList.remove('opacity-0', 'pointer-events-none');
+            },
+            hideLoader: () => $('global-loader').classList.add('opacity-0', 'pointer-events-none'),
+            
+            toast: (msg, type = 'success') => {
+                const container = $('toast-container');
+                const id = 'toast-' + Date.now();
+                
+                const colors = {
+                    success: 'border-green-500/30 bg-green-500/10 text-green-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]',
+                    error: 'border-red-500/30 bg-red-500/10 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)]',
+                    info: 'border-blue-500/30 bg-blue-500/10 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                };
+                
+                const icon = type === 'success' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>' :
+                             type === 'error' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>' :
+                             '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
 
-        // UTILITIES
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('sidebar-open');
-            document.getElementById('sidebar-overlay').classList.toggle('sidebar-overlay-open');
-        }
-        function showLoader() { document.getElementById('global-loader').classList.remove('opacity-0', 'pointer-events-none'); }
-        function hideLoader() { document.getElementById('global-loader').classList.add('opacity-0', 'pointer-events-none'); }
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = msg;
-            t.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
-        }
+                const el = document.createElement('div');
+                el.id = id;
+                el.className = `glass px-5 py-3.5 rounded-2xl flex items-center gap-3 border ${colors[type]} transform translate-y-10 opacity-0 transition-all duration-400 pointer-events-auto`;
+                el.innerHTML = `
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center bg-current bg-opacity-20">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">${icon}</svg>
+                    </div>
+                    <span class="font-medium text-sm text-white">${msg}</span>
+                    <button onclick="document.getElementById('${id}').remove()" class="ml-auto text-gray-400 hover:text-white"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                `;
+                
+                container.appendChild(el);
+                
+                // Animate In
+                requestAnimationFrame(() => {
+                    el.classList.remove('translate-y-10', 'opacity-0');
+                });
+                
+                // Auto Remove
+                setTimeout(() => {
+                    if($(id)) {
+                        el.classList.add('translate-y-10', 'opacity-0');
+                        setTimeout(() => el.remove(), 400);
+                    }
+                }, 4000);
+            },
 
-        // WORKER API ENGINE 
+            updateHeader: (title, subtitle, showBack = false, actionsHtml = "") => {
+                const header = $('page-header');
+                
+                // Animate Out
+                header.classList.add('opacity-0', '-translate-y-4');
+                
+                setTimeout(() => {
+                    $('page-title').innerHTML = title;
+                    $('page-subtitle').innerHTML = subtitle;
+                    $('page-actions').innerHTML = actionsHtml;
+                    
+                    if (showBack) $('back-btn').classList.remove('hidden');
+                    else $('back-btn').classList.add('hidden');
+                    
+                    // Animate In
+                    header.classList.remove('opacity-0', '-translate-y-4');
+                }, 200);
+            },
+            
+            setApiStatus: (isOffline) => {
+                state.isApiOffline = isOffline;
+                const el = $('api-status');
+                if(isOffline) {
+                    el.classList.remove('hidden');
+                    $('api-ping-glow').classList.replace('bg-green-400', 'bg-yellow-400');
+                    $('api-ping-dot').classList.replace('bg-green-500', 'bg-yellow-500');
+                    $('api-status-text').innerText = 'Preview Mode (Mock Data)';
+                } else {
+                    el.classList.add('hidden');
+                }
+            },
+
+            buildSkeletonGrid: (count = 6, type = 'card') => {
+                let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">`;
+                for(let i=0; i<count; i++) {
+                    if (type === 'card') {
+                        html += `
+                        <div class="glass-card rounded-2xl p-5 h-72 flex flex-col gap-4">
+                            <div class="skeleton h-36 w-full rounded-xl"></div>
+                            <div class="skeleton h-6 w-3/4 rounded"></div>
+                            <div class="mt-auto flex justify-between">
+                                <div class="skeleton h-10 w-1/3 rounded-xl"></div>
+                                <div class="skeleton h-10 w-1/3 rounded-xl"></div>
+                            </div>
+                        </div>`;
+                    } else if (type === 'list') {
+                         html += `
+                        <div class="glass-card rounded-xl p-4 flex gap-4 w-full md:col-span-2 lg:col-span-3">
+                            <div class="skeleton w-12 h-12 rounded-lg shrink-0"></div>
+                            <div class="flex flex-col gap-2 w-full">
+                                <div class="skeleton h-5 w-1/2 rounded"></div>
+                                <div class="skeleton h-4 w-1/4 rounded"></div>
+                            </div>
+                        </div>`;
+                    }
+                }
+                return html + `</div>`;
+            }
+        };
+
+
+        // --- 4. LOCAL DATABASE MANAGER ---
+        const db = {
+            get: () => {
+                try { return JSON.parse(localStorage.getItem(CONFIG.LOCAL_DB_KEY)) || { batches: [], history: [], settings: {} }; }
+                catch(e) { return { batches: [], history: [], settings: {} }; }
+            },
+            save: (data) => localStorage.setItem(CONFIG.LOCAL_DB_KEY, JSON.stringify(data)),
+            
+            addBatch: (courseObj) => {
+                const data = db.get();
+                if(!data.batches.find(b => b.courseId == courseObj.courseId)) {
+                    data.batches.unshift(courseObj); // Add to top
+                    db.save(data);
+                    ui.toast('Course added to My Batches', 'success');
+                    return true;
+                }
+                ui.toast('Already in My Batches', 'info');
+                return false;
+            },
+            removeBatch: (courseId) => {
+                const data = db.get();
+                data.batches = data.batches.filter(b => b.courseId != courseId);
+                db.save(data);
+                ui.toast('Course removed from My Batches', 'success');
+            },
+            getBatches: () => db.get().batches,
+            
+            logHistory: (courseId, courseName) => {
+                const data = db.get();
+                data.history = data.history.filter(h => h.id != courseId);
+                data.history.unshift({id: courseId, name: courseName, time: Date.now()});
+                if(data.history.length > 5) data.history.pop(); // Keep last 5
+                db.save(data);
+            }
+        };
+
+
+        // --- 5. ROBUST API ENGINE ---
         async function fetchAPI(endpoint, dataObj, isLegacy = false) {
-            showLoader();
-            // Pointing directly to our Cloudflare Worker proxy route
-            const target = `/api${endpoint}`; 
-            const payload = JSON.stringify({ data: dataObj, token: decodeURIComponent(TOKEN) });
+            
+            // If already detected offline, return mock data instantly to keep UI fast
+            if (state.isApiOffline) return serveMockData(endpoint);
 
-            let body;
-            let headers = {};
-
+            const target = `${CONFIG.API_BASE}${endpoint}`;
+            const payload = JSON.stringify({ data: dataObj, token: decodeURIComponent(CONFIG.TOKEN) });
+            
+            let body, headers = {};
             if (!isLegacy) {
-                body = new FormData();
-                body.append('body', payload);
+                body = new FormData(); body.append('body', payload);
             } else {
-                body = new URLSearchParams();
-                body.append('body', payload);
+                body = new URLSearchParams(); body.append('body', payload);
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
 
             try {
-                const res = await fetch(target, { method: 'POST', body, headers });
+                // Fetch with timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 sec timeout
+                
+                const res = await fetch(target, { method: 'POST', body, headers, signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if(!res.ok) throw new Error("HTTP Error " + res.status);
+                
                 const json = await res.json();
-                hideLoader();
+                ui.setApiStatus(false);
                 return json;
+
             } catch (err) {
-                hideLoader();
-                console.error("API Error:", err);
-                showToast("Network Error: Failed to fetch data");
-                return null;
+                console.warn(`API Error on ${endpoint}:`, err.message);
+                
+                // Switch to Offline Mode automatically
+                ui.setApiStatus(true);
+                ui.toast("Network Issue: Switched to Preview Mode", "warning");
+                
+                return serveMockData(endpoint);
             }
         }
 
-        // LOCAL DATABASE
-        const DB_KEY = "ta_my_batches";
-        function getMyBatches() { return JSON.parse(localStorage.getItem(DB_KEY) || '[]'); }
-        function addToBatch(course) {
-            const batches = getMyBatches();
-            if (!batches.find(b => b.courseId === course.courseId)) {
-                batches.push(course);
-                localStorage.setItem(DB_KEY, JSON.stringify(batches));
-                showToast("Added to My Batches successfully!");
-            } else { showToast("Batch is already added!"); }
-        }
-        function removeBatch(courseId) {
-            let batches = getMyBatches();
-            batches = batches.filter(b => b.courseId != courseId);
-            localStorage.setItem(DB_KEY, JSON.stringify(batches));
-            showToast("Removed from My Batches");
-            if(window.location.hash === '#/my-batches') renderMyBatches();
-        }
-
-        function extractYTThumbnail(url) {
-            if (!url) return null;
-            let videoId = '';
-            const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=))([^"&?\/\s]{11})/i);
-            if (match && match[1]) videoId = match[1];
-            return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
-        }
-
-        // ROUTING SYSTEM
-        window.addEventListener('popstate', handleRoute);
-        function navigate(path) { history.pushState(null, '', path); handleRoute(); }
-        function goBack() { history.back(); }
-
-        function updateHeader(title, subtitle = "", showBack = true) {
-            document.getElementById('page-title').innerText = title;
-            document.getElementById('page-subtitle').innerText = subtitle;
-            document.getElementById('page-header').classList.remove('hidden');
-            if (showBack) document.getElementById('back-btn').classList.remove('hidden');
-            else document.getElementById('back-btn').classList.add('hidden');
-            document.getElementById('app-view').innerHTML = ''; 
-        }
-
-        async function handleRoute() {
-            const hash = window.location.hash || '#/my-batches';
-            const parts = hash.replace('#/', '').split('/');
-            document.getElementById('app-view').innerHTML = '';
-
-            if (parts[0] === 'my-batches') renderMyBatches();
-            else if (parts[0] === 'all-courses') renderAllCategories();
-            else if (parts[0] === 'category' && parts.length === 2) renderCourseList(parts[1]);
-            else if (parts[0] === 'course') {
-                if (parts.length === 2) renderCourseDetails(parts[1]);
-                else if (parts.length === 6 && parts[2] === 'video') renderVideoList(parts[1], parts[3], parts[5]);
-            } else renderMyBatches();
-        }
-
-        // RENDER VIEWS
-        function renderMyBatches() {
-            updateHeader("My Batches", "Your personalized learning space", false);
-            const batches = getMyBatches();
-            if (batches.length === 0) {
-                document.getElementById('app-view').innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-20 text-center">
-                        <div class="w-24 h-24 mb-6 rounded-full bg-surfaceLight flex items-center justify-center">
-                            <svg class="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                        </div>
-                        <h3 class="text-2xl font-bold text-white mb-2">No batches added</h3>
-                        <p class="text-gray-400 mb-8 max-w-md">Explore all courses and add your favorite batches to access them quickly here.</p>
-                        <button onclick="navigate('#/all-courses')" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-accent text-white rounded-full font-semibold hover:opacity-90 shadow-lg shadow-accent/20">Explore All Courses</button>
-                    </div>`;
-                return;
-            }
-            let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
-            batches.forEach(b => {
-                const thumb = b.thumbnail || 'https://via.placeholder.com/600x400/1F2937/8B5CF6?text=No+Cover';
-                html += `
-                    <div class="glass-panel rounded-2xl overflow-hidden card-hover flex flex-col group relative">
-                        <button onclick="removeBatch('${b.courseId}')" class="absolute top-3 right-3 bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-full z-10 backdrop-blur-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-                        <div class="h-48 relative bg-surfaceLight overflow-hidden">
-                            <img src="${thumb}" onerror="this.src='https://via.placeholder.com/600x400/1F2937/8B5CF6'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            <div class="absolute inset-0 bg-gradient-to-t from-surface to-transparent"></div>
-                        </div>
-                        <div class="p-5 flex flex-col flex-grow relative -mt-6">
-                            <span class="bg-primary/20 text-primary text-xs font-bold px-3 py-1 rounded-full w-max mb-3 border border-primary/30">₹ ${b.price || 'Free'}</span>
-                            <h3 class="text-lg font-bold text-white mb-4 flex-grow">${b.courseName}</h3>
-                            <button onclick="navigate('#/course/${b.courseId}')" class="w-full py-3 bg-white/10 hover:bg-primary text-white rounded-xl font-semibold flex items-center justify-center gap-2 border border-white/5 hover:border-primary transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Study Now</button>
-                        </div>
-                    </div>`;
+        // Simulates API responses purely for UI preview when backend is not connected
+        function serveMockData(endpoint) {
+            return new Promise(resolve => {
+                setTimeout(() => { // Simulate network delay
+                    if (endpoint.includes('getCourseCategory')) {
+                        resolve({ data: { courseCategory: MockData.categories }});
+                    }
+                    else if (endpoint.includes('getCoursesBySubCat')) {
+                        resolve({ data: { candidateCourseList: MockData.courses }});
+                    }
+                    else if (endpoint.includes('getCourseCategories')) { // Syllabus
+                        resolve({ data: { categoryList: MockData.syllabus }});
+                    }
+                    else if (endpoint.includes('getCourseVideos')) {
+                        resolve({ data: { courseVideo: MockData.videos }});
+                    }
+                    else {
+                        resolve({ data: {} });
+                    }
+                }, 600); // 600ms realistic delay
             });
-            html += `</div>`;
-            document.getElementById('app-view').innerHTML = html;
         }
 
-        async function renderAllCategories() {
-            updateHeader("Explore Categories", "Find the perfect course for your journey", true);
-            const data = await fetchAPI('/coursecategory/v1/getCourseCategory', { companyId: 46 }, false);
-            if (!data?.data?.courseCategory) return document.getElementById('app-view').innerHTML = `<p class="text-red-400">Failed to load.</p>`;
+        // Helper to extract clean YouTube URLs/Thumbnails
+        const videoUtils = {
+            parseYT: (url) => {
+                if (!url) return null;
+                const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=))([^"&?\/\s]{11})/i);
+                return match ? match[1] : null;
+            },
+            getThumb: (url) => {
+                const id = videoUtils.parseYT(url);
+                return id ? `https://img.youtube.com/vi/${id}/maxresdefault.jpg` : 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=640&h=360';
+            },
+            getEmbed: (url) => {
+                const id = videoUtils.parseYT(url);
+                return id ? `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1` : null;
+            }
+        };
+
+
+        // --- 6. ROUTER SYSTEM ---
+        const router = {
+            init: () => {
+                window.addEventListener('hashchange', router.handle);
+                router.buildSidebar();
+                
+                // If no hash, go to dashboard
+                if (!window.location.hash || window.location.hash === '#/') {
+                    window.location.hash = '#/dashboard';
+                } else {
+                    router.handle();
+                }
+            },
             
-            let html = `<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">`;
-            data.data.courseCategory.forEach(cat => {
-                const gradient = (cat.categoryId % 2 === 0) ? 'from-blue-600 to-indigo-600' : 'from-purple-600 to-accent';
-                html += `
-                    <button onclick="navigate('#/category/${cat.categoryId}')" class="group relative overflow-hidden rounded-2xl p-6 text-left transition-all hover:scale-[1.02] shadow-xl">
-                        <div class="absolute inset-0 bg-gradient-to-br ${gradient} opacity-80 group-hover:opacity-100 transition-opacity"></div>
-                        <div class="absolute inset-0 bg-black/20"></div>
-                        <div class="relative z-10 flex flex-col h-full gap-4">
-                            <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg></div>
-                            <h3 class="text-lg font-bold text-white drop-shadow-md">${cat.courseCategory}</h3>
-                        </div>
-                    </button>`;
-            });
-            html += `</div>`;
-            document.getElementById('app-view').innerHTML = html;
-        }
+            navigate: (path) => {
+                window.location.hash = path;
+                // Sidebar auto-close on mobile
+                if(window.innerWidth < 1024) {
+                    $('sidebar').classList.remove('sidebar-open');
+                    $('sidebar-overlay').classList.remove('sidebar-overlay-open');
+                }
+            },
+            
+            back: () => window.history.back(),
 
-        async function renderCourseList(categoryId) {
-            updateHeader("Available Courses", "Select a batch to view details", true);
-            const layoutData 
+            buildSidebar: () => {
+                const nav = $('nav-links');
+                nav.innerHTML = NAV_ITEMS.map(item => `
+                    <a href="#/${item.id}" id="nav-${item.id}" class="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group font-medium relative overflow-hidden">
+                        <div class="absolute inset-0 bg-${item.color}/10 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300 ease-out z-0"></div>
+                        <div class="p-2 rounded-lg bg-surfaceLighter group-hover:bg-${item.color}/20 group-hover:text-${item.color} transition-colors z-10 shadow-sm border border-white/5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">${item.icon}</svg>
+                        </div>
+                        <span class="z-10 tracking-wide">${item.label}</span>
+                    </a>
+                `).join('');
+            },
+
+            setActiveNav: (routeBase) => {
+                document.querySelectorAll('#nav-links a').forEach(a => {
+                    a.classList.remove('bg-white/10', 'text-white');
+                    a.classList.add('text-gray-400');
+                    if (a.id === `nav-${routeBase}`) {
+                        a.classList.add('bg-white/10', 'text-white', 'shadow-inner');
+                        a.classList.remove('text-gray-400');
+                    }
+                });
+            },
+
+            handle: async () => {
+                const hash = window.location.hash.replace('#/', '');
+                const parts = hash.split('/');
+                const baseRoute = parts[0] || 'dashboard';
+                
+                state.currentRoute = hash;
+                router.setActiveNav(baseRoute);
+                
+                const viewEl = $('app-view');
+                
+                // Clear view and show global loader for heavy routes
+                if(['dashboard', 'my-batches', 'all-courses'].includes(baseRoute)) {
+                    viewEl.innerHTML = ui.buildSkeletonGrid(6, 'card');
+                } else {
+                    viewEl.innerHTML = ui.buildSkeletonGrid(4, 'list');
+                }
+                
+                // Route Controller
+                try {
+                    switch (baseRoute) {
+                        case 'dashboard': await views.renderDashboard(); break;
+                        case 'my-batches': await views.renderMyBatches(); break;
+                        case 'all-courses': await views.renderCategories(); break;
+                        case 'settings': await views.renderSettings(); break;
+                        
+                        case 'category': // #/category/{id}
+                            if(parts[1]) await views.renderCourseList(parts[1]);
+                            break;
+                            
+                        case 'course': // #/course/{id} OR #/course/{id}/video/{catId}/sub/{subId}
+                            if(parts.length === 2) {
+                                await views.renderCourseDetails(parts[1]);
+                            } else if (parts.length === 6 && parts[2] === 'video') {
+                                await views.renderVideoList(parts[1], parts[3], parts[5]);
+                            }
+                            break;
+                            
+                        case 'player': // #/player/{url_encoded}
+                            if(parts[1]) await views.renderPlayer(parts.slice(1).join('/'));
+                            break;
+
+                        default:
+                            router.navigate('#/dashboard');
+                    }
+                } catch (error) {
+                    console.error("Route Error:", error);
+                    viewEl.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-20 text-center">
+                            <div class="w-20 h-20 bg-danger/20 text-danger rounded-full flex items-center justify-center mb-6">
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white mb-2">Oops! Something went wrong.</h3>
+                            <p class="text-gray-400 max-w-md">We couldn't load this page. Please try refreshing or going back.</p>
+                            <button onclick="router.back()" class="mt-8 px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-colors">Go Back</button>
+                        </div>
+                    `;
+                }
+            }
+        };
+
+
+        // --- 7. VIEW RENDERERS (The core UI generation) ---
+        const views = {
+            
+            // 1. Dashboard
+            renderDashboard: async () => {
+                ui.updateHeader("Welcome Back, Student 👋", "Here is your learning overview for today.", false);
+                const batches = db.getBatches();
+                
+                let html = `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                        <div class="glass-card p-6 rounded-3xl border-t border-t-primary/50 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all"></div>
+                            <h4 class="text-gray-400 font-medium mb-1">Active Batches</h4>
+                            <div class="text-4xl font-display font-bold text-white">${batches.length}</div>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl border-t border-t-accent/50 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 w-32 h-32 bg-accent/10 rounded-full blur-2xl group-hover:bg-accent/20 transition-all"></div>
+                            <h4 class="text-gray-400 font-medium mb-1">Hours Studied</h4>
+                            <div class="text-4xl font-display font-bold text-white">24<span class="text-lg text-gray-500 ml-1">hrs</span></div>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl border-t border-t-success/50 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 w-32 h-32 bg-success/10 rounded-full blur-2xl group-hover:bg-success/20 transition-all"></div>
+                            <h4 class="text-gray-400 font-medium mb-1">Current Streak</h4>
+                            <div class="text-4xl font-display font-bold text-white">5<span class="text-lg text-gray-500 ml-1">days 🔥</span></div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-white font-display">Continue Learning</h3>
+                        <a href="#/my-batches" class="text-sm text-primary hover:text-white transition-colors font-medium">View All →</a>
+                    </div>
+                `;
+
+                if(batches.length > 0) {
+                    const recent = batches.slice(0, 3); // top 3
+                    html += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
+                    recent.forEach(b => {
+                        html += `
+                        <div class="glass-card rounded-3xl overflow-hidden card-lift group cursor-pointer" onclick="router.navigate('#/course/${b.courseId}')">
+                            <div class="h-40 relative bg-surfaceLighter">
+                                <img src="${b.thumbnail}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent"></div>
+                                <div class="absolute bottom-4 left-4">
+                                    <span class="bg-primary/20 backdrop-blur border border-primary/30 text-primary text-xs font-bold px-3 py-1 rounded-full">Continue</span>
+                                </div>
+                            </div>
+                            <div class="p-5 flex flex-col gap-3">
+                                <h3 class="font-bold text-white text-lg leading-tight line-clamp-2">${b.courseName}</h3>
+                                <div class="w-full bg-surfaceLighter rounded-full h-1.5 mt-2">
+                                    <div class="bg-gradient-to-r from-primary to-accent h-1.5 rounded-full" style="width: ${Math.floor(Math.random() * 60 + 10)}%"></div>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `
+                    <div class="glass border border-dashed border-white/20 rounded-3xl p-10 text-center flex flex-col items-center justify-center">
+                        <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-gray-500 mb-4">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        </div>
+                        <h4 class="text-lg font-bold text-white mb-2">No active batches</h4>
+                        <p class="text-gray-400 mb-6 max-w-sm">Start your learning journey by exploring our premium courses and adding them to your batches.</p>
+                        <button onclick="router.navigate('#/all-courses')" class="px-6 py-2.5 bg-primary hover:bg-primaryDark text-white rounded-xl font-medium transition-colors shadow-lg shadow-primary/20">Explore Courses</button>
+                    </div>`;
+                }
+
+                $('app-view').innerHTML = html;
+            },
+
+            // 2. My Batches
+            renderMyBatches: async () => {
+                ui.updateHeader("My Workspace", "Manage and access your saved batches quickly.", false);
+                const batches = db.getBatches();
+                const view = $('app-view');
+
+                if (batches.length === 0) {
+                    view.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-24 text-center">
+                            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/empty-box-4155554-3444498.png" class="w-40 h-40 opacity-70 mb-6 drop-shadow-[0_20px_20px_rgba(0,0,0,0.5)]">
+                            <h3 class="text-3xl font-bold font-display text-white mb-3">Your workspace is empty</h3>
+                            <p class="text-gray-400 mb-8 max-w-md text-lg">You haven't added any courses to your batches yet.</p>
+                            <button onclick="router.navigate('#/all-courses')" class="px-8 py-3.5 bg-gradient-to-r from-primary to-accent text-white rounded-2xl font-bold text-lg hover:scale-105 transition-all shadow-[0_10px_20px_-10px_rgba(139,92,246,0.5)]">
+                                Discover Premium Courses
+                            </button>
+                        </div>`;
+                    return;
+                }
+
+                let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 xl:gap-8">`;
+                batches.forEach(b => {
+                    html += `
+                        <div class="glass-card rounded-3xl overflow-hidden card-lift flex flex-col group relative border border-white/5 hover:border-accent/30">
+                            
+                            <!-- Action Menu (Delete) -->
+                            <div class="absolute top-4 right-4 z-20">
+                                <button onclick="db.removeBatch('${b.courseId}'); views.renderMyBatches();" class="w-10 h-10 rounded-full bg-black/50 backdrop-blur border border-white/10 flex items-center justify-center text-gray-300 hover:text-danger hover:bg-danger/20 transition-all focus:outline-none">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+
+                            <!-- Image -->
+                            <div class="h-48 relative bg-surfaceLighter overflow-hidden cursor-pointer" onclick="router.navigate('#/course/${b.courseId}')">
+                                <img src="${b.thumbnail}" onerror="this.src='https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=600&q=80'" class="w-full h-full object-cover opacity-90 group-hover:scale-110 transition-transform duration-700 ease-in-out">
+                                <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/40 to-transparent"></div>
+                                <span class="absolute bottom-4 left-4 bg-white/10 backdrop-blur border border-white/20 text-white text-xs font-bold px-3 py-1 rounded-lg">₹ ${b.price || 'Free'}</span>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div class="p-5 flex flex-col flex-grow relative bg-surface/30">
+                                <h3 class="text-lg font-bold font-display text-white leading-snug mb-5 flex-grow group-hover:text-primary transition-colors cursor-pointer" onclick="router.navigate('#/course/${b.courseId}')">${b.courseName}</h3>
+                                
+                                <button onclick="router.navigate('#/course/${b.courseId}')" class="w-full py-3.5 bg-white/5 hover:bg-primary/90 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 border border-white/5 hover:border-transparent group/btn">
+                                    <svg class="w-5 h-5 group-hover/btn:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Start Studying
+                                </button>
+                            </div>
+                        </div>`;
+                });
+                html += `</div>`;
+                view.innerHTML = html;
+            },
+
+            // 3. All Categories
+            renderCategories: async () => {
+                ui.updateHeader("Explore Universe", "Select a category to browse premium batches.", false);
+                const data = await fetchAPI('/coursecategory/v1/getCourseCategory', { companyId: 46 });
+                
+                if (!data?.data?.courseCategory) {
+                    $('app-view').innerHTML = `<div class="p-6 bg-danger/10 border border-danger/20 text-danger rounded-xl text-center">Failed to load categories. Please check your connection.</div>`;
+                    return;
+                }
+
+                let html = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">`;
+                
+                const colors = [
+                    'from-blue-600 to-indigo-600', 'from-purple-600 to-pink-600', 
+                    'from-emerald-500 to-teal-600', 'from-orange-500 to-red-600',
+                    'from-cyan-500 to-blue-600', 'from-fuchsia-600 to-purple-600'
+                ];
+
+                data.data.courseCategory.forEach((cat, index) => {
+                    const gradient = colors[index % colors.length];
+                    
+                    html += `
+                        <div onclick="router.navigate('#/category/${cat.categoryId}')" class="group relative overflow-hidden rounded-3xl p-1 cursor-pointer transition-all hover:scale-105 hover:-translate-y-1">
+                            <!-- Gradient Border Effect -->
+                            <div class="absolute inset-0 bg-gradient-to-br ${gradient} opacity-50 group-hover:opacity-100 transition-opacity rounded-3xl blur-[2px]"></div>
+                            
+                            <!-- Inner Card -->
+                            <div class="relative h-full bg-surface/90 backdrop-blur-xl rounded-[22px] p-6 flex flex-col items-start gap-5 border border-white/10 group-hover:bg-surface/60 transition-colors z-10">
+                                
+                                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} p-[2px] shadow-lg">
+                                    <div class="w-full h-full bg-dark rounded-xl flex items-center justify-center">
+                                        <svg class="w-7 h-7 text-white opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-auto">
+                                    <h3 class="text-xl font-bold font-display text-white leading-tight group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:${gradient}">${cat.courseCategory}</h3>
+                                    <div class="flex items-center gap-2 mt-3 text-sm text-gray-400 group-hover:text-white transition-colors">
+                                        <span>Explore</span>
+                                        <svg class="w-4 h-4 transform group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                html += `</div>`;
+                $('app-view').innerHTML = html;
+            },
+
+            // 4. Course List inside Category
+            renderCourseList: async (categoryId) => {
+                ui.updateHeader("Available Batches", "Premium courses curated for your success", true);
+                
+                // Fetch Subcat ID layout
+                const layoutData = await fetchAPI('/coursecategory/v1/getLayoutV2', { candidateId: "", categoryId: parseInt(categoryId), companyId: 46, limit: "100", offset: "0" });
+                
+                let subcatId = null;
+                try { subcatId = layoutData.data.layout[0].id; } 
+                catch(e) { return $('app-view').innerHTML = `<div class="p-10 text-center text-gray-400 text-lg border border-dashed border-white/10 rounded-3xl mt-10">No batches available in this category yet.</div>`; }
+
+                const coursesData = await fetchAPI('/coursecategory/v1/getCoursesBySubCat', { limit: "100", offset: "0", searchString: "", subcatId: subcatId });
+                let courses = coursesData?.data?.candidateCourseList || coursesData?.data?.layout?.[0]?.content || [];
+
+                if (!courses.length) return $('app-view').innerHTML = `<div class="p-10 text-center text-gray-400 text-lg border border-dashed border-white/10 rounded-3xl mt-10">No active batches available.</div>`;
+
+                const myBatches = db.getBatches();
+                let html = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">`;
+                
+                courses.forEach(course => {
+                    const thumb = course.thumbnail || 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=600&q=80';
+                    const isAdded = myBatches.some(b => b.courseId == course.courseId);
+                    
+                    const safeCourse = JSON.stringify({ 
+                        courseId: course.courseId, 
+                        courseName: course.courseName.replace(/'/g, "\\'").replace(/"/g, '&quot;'), 
+                        price: course.price, 
+                        thumbnail: thumb 
+                    });
+
+                    // Store in cache for fast title retrieval later
+                    state.cache.courses[course.courseId] = course.courseName;
+
+                    html += `
+                        <div class="glass-card rounded-[2rem] overflow-hidden group hover:-translate-y-2 transition-all duration-300 border border-white/5 hover:border-primary/50 shadow-lg flex flex-col">
+                            
+                            <!-- Banner -->
+                            <div class="h-56 relative bg-surfaceLighter overflow-hidden">
+                                <img src="${thumb}" onerror="this.src='https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=600&q=80'" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t from-[#0f1423] via-transparent to-transparent"></div>
+                                
+                                <div class="absolute top-4 left-4 flex gap-2">
+                                    <span class="bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-warning" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                        Premium
+                                    </span>
+                                </div>
+                                <div class="absolute top-4 right-4">
+                                    <span class="bg-primary/90 backdrop-blur-md text-white font-bold px-3 py-1.5 rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.5)]">₹ ${course.price}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Details -->
+                            <div class="p-6 flex flex-col flex-grow relative bg-gradient-to-b from-[#0f1423] to-surfaceLight">
+                                
+                                <!-- Floating Avatar/Icon -->
+                                <div class="absolute -top-8 right-6 w-16 h-16 rounded-2xl bg-surface border-2 border-white/10 flex items-center justify-center shadow-xl rotate-3 group-hover:-rotate-3 transition-transform">
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(course.courseName.charAt(0))}&background=random&color=fff&bold=true&rounded=true" class="w-12 h-12 rounded-xl">
+                                </div>
+
+                                <h3 class="text-xl font-bold font-display text-white leading-snug mb-3 pr-16 line-clamp-2">${course.courseName}</h3>
+                                <p class="text-sm text-gray-400 mb-8 line-clamp-2">Master the core concepts with interactive live classes, HD recorded lectures, and premium board PDFs designed by top educators.</p>
+                                
+                                <!-- Actions -->
+                                <div class="grid grid-cols-2 gap-3 mt-auto">
+                                    ${isAdded 
+                                        ? `<button disabled class="py-3.5 bg-success/10 text-success rounded-2xl font-bold border border-success/30 flex items-center justify-center gap-2 cursor-not-allowed opacity-80"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> In Batch</button>` 
+                                        : `<button onclick='db.addBatch(${safeCourse}); router.navigate("#/category/${categoryId}");' class="py-3.5 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Add</button>`}
+                                    
+                                    <button onclick="router.navigate('#/course/${course.courseId}')" class="py-3.5 bg-gradient-to-r from-primary to-primaryDark hover:from-primaryDark hover:to-primary text-white rounded-2xl font-bold shadow-[0_5px_20px_rgba(59,130,246,0.4)] hover:shadow-[0_8px_25px_rgba(59,130,246,0.6)] transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5">
+                                        View Details
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                html += `</div>`;
+                $('app-view').innerHTML = html;
+            },
+
+            // 5. Course Syllabus/Topics
+            renderCourseDetails: async (courseId) => {
+                const cName = state.cache.courses[courseId] || "Course Contents";
+                db.logHistory(courseId, cName);
+                
+                ui.updateHeader(cName, "Interactive Syllabus. Click subject to reveal topics.", true, 
+                    `<span class="px-3 py-1 rounded-full bg-primary/20 text-primary border border-primary/30 text-sm font-bold shadow-inner">ID: ${courseId}</span>`
+                );
+                
+                const data = await fetchAPI('/course/course/getCourseCategories', { courseId: String(courseId) }, true);
+                
+                if (!data?.data?.categoryList?.length) return $('app-view').innerHTML = `<div class="p-10 text-center text-gray-400 text-lg border border-dashed border-white/10 rounded-3xl">No syllabus structure found for this course.</div>`;
+
+                let html = `<div class="flex flex-col gap-4 max-w-4xl mx-auto">`;
+                
+                data.data.categoryList.forEach((subject, idx) => {
+                    html += `
+                        <div class="glass rounded-2xl overflow-hidden border border-white/5 transition-all duration-300 hover:border-white/10 bg-surfaceLight/30">
+                            <!-- Accordion Header -->
+                            <button onclick="document.getElementById('subj-${idx}').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotate-180')" class="w-full p-5 md:p-6 flex items-center justify-between hover:bg-white/5 transition-colors focus:outline-none group">
+                                <div class="flex items-center gap-4 md:gap-5">
+                                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent/20 to-primary/20 border border-white/10 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                                    </div>
+                                    <div class="text-left">
+                                        <h3 class="text-lg md:text-xl font-bold font-display text-white mb-1 group-hover:text-primary transition-colors">${subject.categoryName}</h3>
+                                        <p class="text-xs text-gray-500">${subject.subCategory?.length || 0} Topics available</p>
+                                    </div>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/5 group-hover:bg-white/10 transition-colors">
+                                    <svg class="w-5 h-5 text-gray-400 arrow transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </button>
+                            
+                            <!-- Accordion Body -->
+                            <div id="subj-${idx}" class="hidden">
+                                <div class="flex flex-col gap-1 p-2 md:p-4 border-t border-white/5 bg-surface/80">`;
+                    
+                    if (subject.subCategory?.length) {
+                        subject.subCategory.forEach(topic => {
+                            html += `
+                                <button onclick="router.navigate('#/course/${courseId}/video/${subject.id}/sub/${topic.subCategoryId}')" class="flex items-center justify-between p-4 rounded-xl hover:bg-white/10 transition-all text-left group/btn border border-transparent hover:border-white/5">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-2.5 h-2.5 rounded-full bg-gray-600 group-hover/btn:bg-primary group-hover/btn:shadow-[0_0_10px_rgba(59,130,246,0.8)] transition-all"></div>
+                                        <span class="text-gray-300 group-hover/btn:text-white font-medium md:text-lg">${topic.subCategory}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-gray-500 group-hover/btn:text-primary transition-colors">
+                                        <span class="text-xs uppercase tracking-wider font-bold hidden md:block opacity-0 group-hover/btn:opacity-100 transition-opacity">Open Folder</span>
+                                        <svg class="w-5 h-5 transform group-hover/btn:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                    </div>
+                                </button>`;
+                        });
+                    } else { 
+                        html += `<p class="text-gray-500 p-6 text-center text-sm italic">No topics assigned to this subject yet.</p>`; 
+                    }
+                    html += `</div></div></div>`;
+                });
+                
+                html += `</div>`;
+                $('app-view').innerHTML = html;
+            },
+
+            // 6. Videos & Materials inside a Topic
+            renderVideoList: async (courseId, catId, subCatId) => {
+                ui.updateHeader("Study Material", "Lectures, Notes and PDFs", true);
+                
+                const payload = { courseId: String(courseId), filters: { videoCategory: String(catId), videoSubCategory: String(subCatId) }, limit: "1000", offset: "0" };
+                const data = await fetchAPI('/candidate/candidate/getCourseVideos', payload, true);
+
+                if (!data?.data?.courseVideo?.length) {
+                    return $('app-view').innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-20">
+                            <div class="w-24 h-24 bg-surfaceLighter rounded-full flex items-center justify-center text-gray-600 mb-6 border border-white/5"><svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg></div>
+                            <h3 class="text-2xl font-bold font-display text-gray-400">No content uploaded yet</h3>
+                            <p class="text-gray-500 mt-2">Check back later for new lectures.</p>
+                        </div>`;
+                }
+
+                const videos = data.data.courseVideo.reverse(); // Chronological
+                let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">`;
+                
+                videos.forEach((cv, idx) => {
+                    const vlink = cv.url || cv.Url || '';
+                    const plink = cv.pdfUrl || '';
+                    const title = cv.title || `Lecture ${idx+1}`;
+                    const ytThumb = videoUtils.getThumb(vlink);
+                    
+                    let dateHtml = "";
+                    if(cv.eventDateTime) {
+                        const d = new Date(cv.eventDateTime);
+                        const dateStr = isNaN(d) ? cv.eventDateTime : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                        dateHtml = `<div class="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 flex items-center gap-1.5 shadow-lg"><svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span class="text-xs font-bold text-white tracking-wide">${dateStr}</span></div>`;
+                    }
+
+                    // Smart Actions (In-app player vs External PDF)
+                    const playAction = vlink ? `router.navigate('#/player/${encodeURIComponent(vlink)}?title=${encodeURIComponent(title)}')` : '';
+
+                    html += `
+                        <div class="glass-card rounded-[1.5rem] overflow-hidden flex flex-col group border border-white/5 hover:border-primary/40 transition-all duration-300 card-lift">
+                            
+                            <!-- Video Thumbnail Area -->
+                            <div class="relative aspect-video bg-surface overflow-hidden cursor-pointer" onclick="${playAction}">
+                                <img src="${ytThumb}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/20 to-transparent"></div>
+                                ${dateHtml}
+                                
+                                ${vlink ? `
+                                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 backdrop-blur-sm">
+                                    <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center pl-1.5 shadow-[0_0_30px_rgba(220,38,38,0.7)] transform scale-75 group-hover:scale-100 transition-all duration-400 ease-out border-2 border-red-400/50">
+                                        <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    </div>
+                                </div>` : ''}
+                            </div>
+                            
+                            <!-- Content Details -->
+                            <div class="p-5 flex flex-col flex-grow relative bg-gradient-to-b from-dark to-surfaceLighter">
+                                <h3 class="text-base md:text-lg font-bold font-display text-white leading-snug mb-5 line-clamp-2" title="${title}">${title}</h3>
+                                
+                                <div class="grid grid-cols-2 gap-3 mt-auto">
+                                    ${vlink 
+                                        ? `<button onclick="${playAction}" class="py-2.5 bg-red-600/10 hover:bg-red-600/20 text-red-500 hover:text-red-400 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 border border-red-500/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Watch</button>` 
+                                        : `<div class="py-2.5 bg-white/5 text-gray-600 rounded-xl text-sm font-medium flex items-center justify-center border border-white/5 cursor-not-allowed">No Video</div>`}
+                                    
+                                    ${plink 
+                                        ? `<a href="${plink}" target="_blank" class="py-2.5 bg-primary/10 hover:bg-primary/20 text-primary hover:text-blue-300 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 border border-primary/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> PDF Notes</a>` 
+                                        : `<div class="py-2.5 bg-white/5 text-gray-600 rounded-xl text-sm font-medium flex items-center justify-center border border-white/5 cursor-not-allowed">No PDF</div>`}
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                html += `</div>`;
+                $('app-view').innerHTML = html;
+            },
+
+            // 7. Video Player (Theater Mode)
+            renderPlayer: async (urlData) => {
+                const urlObj = new URL('http://dummy.com' + urlData);
+                const rawUrl = decodeURIComponent(urlObj.pathname.substring(1));
+                const title = decodeURIComponent(urlObj.searchParams.get('title') || 'Video Player');
+                
+                ui.updateHeader("Now Playing", title, true);
+                
+                const embedUrl = videoUtils.getEmbed(rawUrl);
+                
+                if(!embedUrl) {
+                    $('app-view').innerHTML = `<div class="p-10 glass border border-danger/30 text-danger rounded-2xl text-center font-bold">Unsupported Video Format. Cannot play inside app. <br><a href="${rawUrl}" target="_blank" class="text-white mt-4 inline-block bg-white/10 px-4 py-2 rounded">Open in Browser</a></div>`;
+                    return;
+                }
+
+                const html = `
+                    <div class="max-w-5xl mx-auto flex flex-col gap-6 animate-slide-up">
+                        
+                        <!-- Main Player Container -->
+                        <div class="glass-card rounded-[2rem] p-3 md:p-4 border-2 border-primary/20 shadow-[0_0_50px_rgba(59,130,246,0.15)] relative">
+                            <div class="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-[2rem] blur-xl z-0 pointer-events-none"></div>
+                            
+                            <div class="video-container z-10 relative">
+                                <iframe src="${embedUrl}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                        
+                        <!-- Meta Info & Controls -->
+                        <div class="glass rounded-2xl p-6 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
+                            <div class="flex-1">
+                                <h2 class="text-2xl font-bold font-display text-white mb-2 leading-tight">${title}</h2>
+                                <div class="flex items-center gap-4 text-sm text-gray-400">
+                                    <span class="flex items-center gap-1"><svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg> High Definition</span>
+                                    <span class="flex items-center gap-1"><svg class="w-4 h-4 text-success" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> Official Source</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-3 w-full md:w-auto">
+                                <button onclick="ui.toast('Added to favorites', 'success')" class="flex-1 md:flex-none px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium flex items-center justify-center gap-2 border border-white/10 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                    Save
+                                </button>
+                                <a href="${rawUrl}" target="_blank" class="flex-1 md:flex-none px-5 py-3 rounded-xl bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white font-bold flex items-center justify-center gap-2 border border-red-500/30 transition-colors">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                                    Open App
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Notes Panel -->
+                        <div class="glass rounded-2xl p-6 border-l-4 border-l-accent">
+                            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2"><svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Personal Notes</h3>
+                            <textarea class="w-full h-32 bg-surface/50 border border-white/10 rounded-xl p-4 text-sm text-white placeholder-gray-500 focus:ring-2 focus:ring-accent/50 focus:outline-none resize-none" placeholder="Jot down important points from this lecture here..."></textarea>
+                            <div class="flex justify-end mt-3">
+                                <button onclick="ui.toast('Notes saved locally', 'success')" class="px-4 py-2 bg-accent hover:bg-accentLight text-white rounded-lg text-sm font-bold transition-colors">Save Notes</button>
+                            </div>
+                        </div>
+                    </div>`;
+                
+                $('app-view').innerHTML = html;
+            },
+
+            // 8. Settings & Profile
+            renderSettings: async () => {
+                ui.updateHeader("Settings", "Manage preferences and app config", false);
+                
+                const html = `
+                    <div class="max-w-4xl mx-auto space-y-6">
+                        <!-- Profile Card -->
+                        <div class="glass-card rounded-[2rem] p-8 flex flex-col md:flex-row items-center gap-8 border border-white/10">
+                            <div class="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent p-1 shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+                                <img src="https://ui-avatars.com/api/?name=Student+Naveen&background=0f1423&color=fff&rounded=true&bold=true&size=128" class="w-full h-full rounded-full border-4 border-dark">
+                            </div>
+                            <div class="flex-1 text-center md:text-left">
+                                <h2 class="text-3xl font-bold font-display text-white mb-1">Premium Student</h2>
+                                <p class="text-primary font-medium tracking-wide">ID: TA-2026-PRO</p>
+                            </div>
+                            <button class="px-6 py-2.5 rounded-xl border border-white/20 text-white hover:bg-white/10 font-bold transition-all">Edit Profile</button>
+                        </div>
+                        
+                        <!-- Toggles -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="glass rounded-2xl p-6 border border-white/5 flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-bold text-white text-lg">Push Notifications</h4>
+                                    <p class="text-sm text-gray-400">Get alerts for new lectures</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                  <input type="checkbox" value="" class="sr-only peer" checked>
+                                  <div class="w-11 h-6 bg-surfaceLighter peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div class="glass rounded-2xl p-6 border border-white/5 flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-bold text-white text-lg">Auto-Play Videos</h4>
+                                    <p class="text-sm text-gray-400">Start lectures immediately</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                  <input type="checkbox" value="" class="sr-only peer" checked>
+                                  <div class="w-11 h-6 bg-surfaceLighter peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- System Info -->
+                        <div class="glass rounded-2xl p-6 border border-white/5">
+                            <h4 class="font-bold text-white text-lg mb-4">System Information</h4>
+                            <div class="space-y-3 font-mono text-sm">
+                                <div class="flex justify-between py-2 border-b border-white/5"><span class="text-gray-400">App Version</span><span class="text-success font-bold">${CONFIG.VERSION}</span></div>
+                                <div class="flex justify-between py-2 border-b border-white/5"><span class="text-gray-400">UI Architecture</span><span class="text-white">Vanilla JS + Tailwind</span></div>
+                                <div class="flex justify-between py-2 border-b border-white/5"><span class="text-gray-400">Storage Used</span><span class="text-white">${JSON.stringify(db.get()).length} bytes</span></div>
+                                <div class="flex justify-between py-2"><span class="text-gray-400">Developer</span><span class="text-accent font-bold">Premium Branding by Naveen</span></div>
+                            </div>
+                        </div>
+                    </div>`;
+                $('app-view').innerHTML = html;
+            }
+        };
+
+        // --- 8. INITIALIZATION RUNNER ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log(`%c${CONFIG.BRAND} v${CONFIG.VERSION} Initialized`, 'color: #3B82F6; font-size: 20px; font-weight: bold;');
+            router.init();
+        });
+
+    </script>
+</body>
+</html>
