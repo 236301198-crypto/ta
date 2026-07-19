@@ -42,7 +42,7 @@ export default {
  * packages the payload into a Classwalla-compatible form-data and fetches the remote server.
  */
 async function handleAPIRequest(request, path) {
-  const targetUrl = `https://backend.classwalla.com/${path}`;
+  const targetUrl = "https://backend.classwalla.com/" + path;
   
   let clientData = {};
   if (request.method === "POST") {
@@ -195,7 +195,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             <div class="flex items-center justify-between h-20">
                 
                 <!-- Premium Logo & Brand Name "TEACHERS ACADEMY by Naveen" -->
-                <div class="flex items-center gap-4 cursor-pointer group" onclick="TA.Router.navigate('/')">
+                <div class="flex items-center gap-4 cursor-pointer group" onclick="TA.Router.navigate('#/')">
                     <div class="relative">
                         <div class="absolute -inset-1 bg-gradient-to-tr from-academy-600 to-indigo-500 rounded-2xl blur opacity-60 group-hover:opacity-100 transition duration-500"></div>
                         <img src="https://play-lh.googleusercontent.com/x8XlorPIOcczsf2PNlrcW03SkziHQs-tqTMQegTMfWrthvLOmADAnbdxSKAJBaJN8CB8tuLQ80L1mmtb-YAHtNU" 
@@ -238,11 +238,11 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 <div class="space-y-2">
                     <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Navigation</p>
                     <nav class="space-y-1">
-                        <button onclick="TA.Router.navigate('/')" id="sidebar-home" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-academy-400 bg-academy-950/20 border-l-4 border-academy-500">
+                        <button onclick="TA.Router.navigate('#/')" id="sidebar-home" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-academy-400 bg-academy-950/20 border-l-4 border-academy-500">
                             <i class="fa-solid fa-graduation-cap text-lg"></i> 
                             <span>My Batches</span>
                         </button>
-                        <button onclick="TA.Router.navigate('/all-courses')" id="sidebar-browse" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-slate-900/40">
+                        <button onclick="TA.Router.navigate('#/all-courses')" id="sidebar-browse" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white hover:bg-slate-900/40">
                             <i class="fa-solid fa-compass text-lg"></i> 
                             <span>All Courses</span>
                         </button>
@@ -289,7 +289,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button onclick="TA.Router.navigate('/all-courses')" class="bg-gradient-to-r from-academy-600 to-indigo-600 hover:from-academy-500 hover:to-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-lg flex items-center gap-1.5">
+                    <button onclick="TA.Router.navigate('#/all-courses')" class="bg-gradient-to-r from-academy-600 to-indigo-600 hover:from-academy-500 hover:to-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-lg flex items-center gap-1.5">
                         <i class="fa-solid fa-plus-circle"></i> Browse All Courses
                     </button>
                 </div>
@@ -325,7 +325,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                         <h3 class="text-md font-bold text-white">No Enrolled Batches</h3>
                         <p class="text-xs text-slate-400">आपकी लाइब्रेरी में अभी कोई बैच सेव नहीं है। "All Courses" बटन से कोर्सेज ढूंढें।</p>
                     </div>
-                    <button onclick="TA.Router.navigate('/all-courses')" class="bg-academy-600 hover:bg-academy-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all shadow-md">
+                    <button onclick="TA.Router.navigate('#/all-courses')" class="bg-academy-600 hover:bg-academy-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition-all shadow-md">
                         Browse Course Catalog
                     </button>
                 </div>
@@ -364,7 +364,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                         <h3 id="category-panel-title" class="text-md sm:text-lg font-extrabold text-white">Courses</h3>
                         <p class="text-xs text-slate-400">इस कैटेगरी के अंतर्गत चल रहे एक्टिव बैच</p>
                     </div>
-                    <button onclick="TA.Router.navigate('/all-courses')" class="text-xs text-academy-400 hover:text-academy-300 font-bold flex items-center gap-1.5">
+                    <button onclick="TA.Router.navigate('#/all-courses')" class="text-xs text-academy-400 hover:text-academy-300 font-bold flex items-center gap-1.5">
                         <i class="fa-solid fa-chevron-left"></i> All Categories
                     </button>
                 </div>
@@ -445,10 +445,10 @@ const HTML_CONTENT = `<!DOCTYPE html>
                             <!-- Empty playlist view -->
                             <div id="classroom-empty-state" class="text-center py-20 text-slate-500 space-y-3 max-w-xs mx-auto">
                                 <i class="fa-solid fa-folder-open text-4xl text-slate-700"></i>
-                                <p class="text-xs">पढ़ना शुरू करने के लिए लेफ्ट साइडबार से कोई भी चैप्टर लोड करें।</p>
+                                <p class="text-xs">पढ़ना शुरू करने के लिए लेफ्ट साइडबार से कोई भी chapter लोड करें।</p>
                             </div>
 
-                            <div id="classroom-lectures-output-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade">
+                            <div id="classroom-lectures-output-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <!-- Dynamic Lectures -->
                             </div>
                         </div>
@@ -462,11 +462,11 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
     <!-- MOBILE NAVIGATION TAB-BAR (BOTTOM BAR) -->
     <nav class="lg:hidden glass-nav border-t border-slate-900 px-6 py-3.5 flex justify-around items-center shrink-0">
-        <button onclick="TA.Router.navigate('/')" id="mob-nav-home" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-all">
+        <button onclick="TA.Router.navigate('#/')" id="mob-nav-home" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-all">
             <i class="fa-solid fa-graduation-cap text-lg"></i>
             <span class="text-[9px] font-bold">My Batches</span>
         </button>
-        <button onclick="TA.Router.navigate('/all-courses')" id="mob-nav-browse" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-all">
+        <button onclick="TA.Router.navigate('#/all-courses')" id="mob-nav-browse" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition-all">
             <i class="fa-solid fa-compass text-lg"></i>
             <span class="text-[9px] font-bold">All Courses</span>
         </button>
@@ -528,7 +528,6 @@ const HTML_CONTENT = `<!DOCTYPE html>
             activeCourseThumb: null,
             activeCoursePrice: null,
             
-            // Core saved arrays loaded cleanly
             myBatches: JSON.parse(localStorage.getItem('ta_enrolled_batches')) || [],
             completedLectures: JSON.parse(localStorage.getItem('ta_completed_indices')) || [],
             
@@ -538,16 +537,17 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
         // Router Interface with history state matching for back navs
         const Router = {
-            init() {
-                window.addEventListener('hashchange', () => this.handleRoute());
-                window.addEventListener('load', () => this.handleRoute());
+            init: function() {
+                var self = this;
+                window.addEventListener('hashchange', function() { self.handleRoute(); });
+                window.addEventListener('load', function() { self.handleRoute(); });
             },
 
-            navigate(hash) {
+            navigate: function(hash) {
                 window.location.hash = hash;
             },
 
-            async handleRoute() {
+            handleRoute: async function() {
                 const hash = window.location.hash || '#/';
                 document.querySelector('main').scrollTop = 0;
 
@@ -578,7 +578,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     appState.activeCategory = categoryId;
                     this.switchPanel('view-category-courses');
 
-                    const catObj = appState.categories.find(c => String(c.categoryId) === String(categoryId));
+                    const catObj = appState.categories.find(function(c) { return String(c.categoryId) === String(categoryId); });
                     const catTitle = catObj ? catObj.courseCategory : "Courses";
                     
                     document.getElementById('category-panel-title').innerText = catTitle;
@@ -610,8 +610,8 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 }
             },
 
-            switchPanel(id) {
-                document.querySelectorAll('.view-panel').forEach(panel => panel.classList.add('hidden'));
+            switchPanel: function(id) {
+                document.querySelectorAll('.view-panel').forEach(function(panel) { panel.classList.add('hidden'); });
                 const active = document.getElementById(id);
                 if (active) active.classList.remove('hidden');
             }
@@ -621,27 +621,26 @@ const HTML_CONTENT = `<!DOCTYPE html>
         const TA = {
             Router: Router,
 
-            async init() {
+            init: function() {
                 this.Router.init();
                 this.UI.updateGlobalStatistics();
             },
 
             API: {
-                async callPost(path, dataPayload) {
-                    // Proxied directly through secure worker route under same domain
-                    const response = await fetch(`/api/${path}`, {
+                callPost: async function(path, dataPayload) {
+                    const response = await fetch("/api/" + path, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(dataPayload)
                     });
 
                     if (!response.ok) {
-                        throw new Error(`API response status failure: ${response.status}`);
+                        throw new Error("API response failure: " + response.status);
                     }
                     return await response.json();
                 },
 
-                async fetchCategories() {
+                fetchCategories: async function() {
                     const shimmer = document.getElementById('categories-shimmer');
                     const grid = document.getElementById('categories-selection-grid');
                     shimmer.classList.remove('hidden');
@@ -659,7 +658,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     }
                 },
 
-                async fetchCourses(categoryId) {
+                fetchCourses: async function(categoryId) {
                     const shimmer = document.getElementById('courses-shimmer');
                     const grid = document.getElementById('courses-display-grid');
                     shimmer.classList.remove('hidden');
@@ -683,7 +682,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     }
                 },
 
-                async fetchCourseSyllabus(courseId) {
+                fetchCourseSyllabus: async function(courseId) {
                     const shimmer = document.getElementById('syllabus-shimmer');
                     const tree = document.getElementById('syllabus-accordion-tree');
                     shimmer.classList.remove('hidden');
@@ -693,26 +692,30 @@ const HTML_CONTENT = `<!DOCTYPE html>
                         const json = await this.callPost('course/course/getCourseCategories', { courseId: courseId });
                         const catList = json?.data?.categoryList || [];
                         
-                        appState.syllabusTree = catList.map(cat => ({
-                            categoryId: cat.id,
-                            categoryName: cat.categoryName,
-                            subCategories: (cat.subCategory || []).map(sub => ({
-                                subCategoryId: sub.subCategoryId,
-                                subCategoryName: sub.subCategory
-                            }))
-                        }));
+                        appState.syllabusTree = catList.map(function(cat) {
+                            return {
+                                categoryId: cat.id,
+                                categoryName: cat.categoryName,
+                                subCategories: (cat.subCategory || []).map(function(sub) {
+                                    return {
+                                        subCategoryId: sub.subCategoryId,
+                                        subCategoryName: sub.subCategory
+                                    };
+                                })
+                            };
+                        });
 
                         shimmer.classList.add('hidden');
                         TA.UI.renderSyllabusTree();
 
                         // Set classroom header meta details dynamically
-                        const savedObj = appState.myBatches.find(b => String(b.courseId) === String(courseId));
+                        const savedObj = appState.myBatches.find(function(b) { return String(b.courseId) === String(courseId); });
                         if (savedObj) {
                             TA.UI.setClassroomMeta(savedObj.courseName, savedObj.courseId, savedObj.thumbnail);
                         } else {
                             let cached = null;
-                            Object.values(appState.courses).forEach(arr => {
-                                const matched = arr.find(c => String(c.courseId) === String(courseId));
+                            Object.values(appState.courses).forEach(function(arr) {
+                                const matched = arr.find(function(c) { return String(c.courseId) === String(courseId); });
                                 if (matched) cached = matched;
                             });
                             if (cached) {
@@ -727,7 +730,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     }
                 },
 
-                async fetchLectures(courseId, categoryId, subCategoryId) {
+                fetchLectures: async function(courseId, categoryId, subCategoryId) {
                     const shimmer = document.getElementById('lectures-shimmer');
                     const grid = document.getElementById('classroom-lectures-output-grid');
                     const empty = document.getElementById('classroom-empty-state');
@@ -759,13 +762,13 @@ const HTML_CONTENT = `<!DOCTYPE html>
             },
 
             UI: {
-                updateHeaderMeta(title, subtitle) {
+                updateHeaderMeta: function(title, subtitle) {
                     document.getElementById('view-header-title').innerText = title;
                     document.getElementById('view-header-subtitle').innerText = subtitle;
                 },
 
-                updateNavHighlighter(sidebarId, mobId) {
-                    document.querySelectorAll('aside button, nav button').forEach(btn => {
+                updateNavHighlighter: function(sidebarId, mobId) {
+                    document.querySelectorAll('aside button, nav button').forEach(function(btn) {
                         btn.className = "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-4 py-1 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all";
                     });
 
@@ -780,18 +783,17 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     }
                 },
 
-                updateGlobalStatistics() {
+                updateGlobalStatistics: function() {
                     const doneCount = appState.completedLectures.length;
-                    document.getElementById('stat-batch-count').innerText = appState.myBatches.length;
                     document.getElementById('desktop-lectures-done').innerText = doneCount;
 
                     const percent = Math.min(100, Math.round(doneCount * 12.5));
-                    document.getElementById('desktop-progress-bar').style.width = `${percent}%`;
-                    document.getElementById('stat-lecture-progress').innerText = `${percent}%`;
+                    document.getElementById('desktop-progress-bar').style.width = percent + "%";
+                    document.getElementById('stat-lecture-progress').innerText = percent + "%";
                 },
 
-                enrollBatch(courseObj) {
-                    if (appState.myBatches.some(b => String(b.courseId) === String(courseObj.courseId))) {
+                enrollBatch: function(courseObj) {
+                    if (appState.myBatches.some(function(b) { return String(b.courseId) === String(courseObj.courseId); })) {
                         this.showToast("यह बैच पहले से ही एनरोल किया हुआ है।", "info");
                         return;
                     }
@@ -799,15 +801,15 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     appState.myBatches.push(courseObj);
                     localStorage.setItem('ta_enrolled_batches', JSON.stringify(appState.myBatches));
                     this.updateGlobalStatistics();
-                    this.showToast(`सफलतापूर्वक एनरोल किया: ${courseObj.courseName}`, "success");
+                    this.showToast("सफलतापूर्वक एनरोल किया: " + courseObj.courseName, "success");
 
                     if (appState.activeCourseId === String(courseObj.courseId)) {
                         this.toggleEnrollmentButtonState(true);
                     }
                 },
 
-                unenrollBatch(courseId) {
-                    appState.myBatches = appState.myBatches.filter(b => String(b.courseId) !== String(courseId));
+                unenrollBatch: function(courseId) {
+                    appState.myBatches = appState.myBatches.filter(function(b) { return String(b.courseId) !== String(courseId); });
                     localStorage.setItem('ta_enrolled_batches', JSON.stringify(appState.myBatches));
                     this.updateGlobalStatistics();
                     this.showToast("बैच रिमूव कर दिया गया है।", "info");
@@ -821,17 +823,18 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     }
                 },
 
-                toggleEnrollmentButtonState(isEnrolled) {
+                toggleEnrollmentButtonState: function(isEnrolled) {
                     const btn = document.getElementById('btn-classroom-save-toggle');
                     if (!btn) return;
 
+                    var self = this;
                     if (isEnrolled) {
                         btn.className = "bg-rose-950 hover:bg-rose-900 border border-rose-900 text-rose-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5";
-                        btn.innerHTML = `<i class="fa-solid fa-trash-can"></i> Disenroll`;
-                        btn.onclick = () => this.unenrollBatch(appState.activeCourseId);
+                        btn.innerHTML = "<i class='fa-solid fa-trash-can'></i> Disenroll";
+                        btn.onclick = function() { self.unenrollBatch(appState.activeCourseId); };
                     } else {
                         btn.className = "bg-academy-600 hover:bg-academy-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-lg shadow-academy-600/10";
-                        btn.innerHTML = `<i class="fa-solid fa-bookmark"></i> Enroll Class`;
+                        btn.innerHTML = "<i class='fa-solid fa-bookmark'></i> Enroll Class";
                         
                         const courseObj = {
                             courseId: appState.activeCourseId,
@@ -839,77 +842,79 @@ const HTML_CONTENT = `<!DOCTYPE html>
                             thumbnail: appState.activeCourseThumb,
                             price: appState.activeCoursePrice || 'Premium Access'
                         };
-                        btn.onclick = () => this.enrollBatch(courseObj);
+                        btn.onclick = function() { self.enrollBatch(courseObj); };
                     }
                 },
 
-                setClassroomMeta(name, id, thumb) {
+                setClassroomMeta: function(name, id, thumb) {
                     appState.activeCourseName = name;
                     appState.activeCourseThumb = thumb;
 
                     document.getElementById('classroom-banner-title').innerText = name;
-                    document.getElementById('classroom-banner-id').innerText = `Batch ID: ${id}`;
+                    document.getElementById('classroom-banner-id').innerText = "Batch ID: " + id;
                     document.getElementById('classroom-banner-img').src = thumb || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&q=80';
 
-                    const isEnrolled = appState.myBatches.some(b => String(b.courseId) === String(id));
+                    const isEnrolled = appState.myBatches.some(function(b) { return String(b.courseId) === String(id); });
                     this.toggleEnrollmentButtonState(isEnrolled);
                 },
 
-                renderMyBatchesGrid() {
+                renderMyBatchesGrid: function() {
                     const grid = document.getElementById('my-batches-grid-canvas');
                     const empty = document.getElementById('panel-empty-batches');
                     grid.innerHTML = '';
 
                     if (appState.myBatches.length === 0) {
                         empty.classList.remove('hidden');
+                        document.getElementById('stat-batch-count').innerText = "0";
                         return;
                     }
                     empty.classList.add('hidden');
+                    document.getElementById('stat-batch-count').innerText = appState.myBatches.length;
 
-                    appState.myBatches.forEach(b => {
+                    appState.myBatches.forEach(function(b) {
                         const fallback = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&q=80';
                         const thumb = b.thumbnail || fallback;
 
-                        const card = `
-                            <div class="glass-card rounded-2xl overflow-hidden group hover:border-academy-500/50 hover:shadow-2xl transition-all duration-300 flex flex-col justify-between">
-                                <div class="relative aspect-video overflow-hidden">
-                                    <img src="${thumb}" onerror="this.src='${fallback}'" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
-                                    <span class="absolute top-3 right-3 bg-academy-600/90 text-white font-extrabold text-[9px] px-2.5 py-1 rounded-full uppercase tracking-widest shadow border border-white/10">
-                                        Active Class
-                                    </span>
-                                </div>
-                                
-                                <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
-                                    <div class="space-y-1.5">
-                                        <div class="flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-                                            <span>BATCH ID: ${b.courseId}</span>
-                                            <span class="text-academy-400 font-bold">${b.price}</span>
-                                        </div>
-                                        <h4 class="text-sm font-extrabold text-white group-hover:text-academy-300 transition-colors line-clamp-2">${b.courseName}</h4>
-                                    </div>
-                                    
-                                    <div class="flex items-center justify-between border-t border-slate-900/80 pt-4 gap-2">
-                                        <button onclick="TA.UI.unenrollBatch('${b.courseId}')" class="text-xs text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1.5">
-                                            <i class="fa-solid fa-trash"></i> Remove
-                                        </button>
-                                        <button onclick="TA.Router.navigate('/course/${b.courseId}')" class="bg-academy-600 hover:bg-academy-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5">
-                                             Enter Classroom <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                        const card = [
+                            '<div class="glass-card rounded-2xl overflow-hidden group hover:border-academy-500/50 hover:shadow-2xl transition-all duration-300 flex flex-col justify-between">',
+                            '    <div class="relative aspect-video overflow-hidden">',
+                            '        <img src="' + thumb + '" onerror="this.src=\'' + fallback + '\'" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300">',
+                            '        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>',
+                            '        <span class="absolute top-3 right-3 bg-academy-600/90 text-white font-extrabold text-[9px] px-2.5 py-1 rounded-full uppercase tracking-widest shadow border border-white/10">',
+                            '            Active Class',
+                            '        </span>',
+                            '    </div>',
+                            '    ',
+                            '    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">',
+                            '        <div class="space-y-1.5">',
+                            '            <div class="flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest">',
+                            '                <span>BATCH ID: ' + b.courseId + '</span>',
+                            '                <span class="text-academy-400 font-bold">' + b.price + '</span>',
+                            '            </div>',
+                            '            <h4 class="text-sm font-extrabold text-white group-hover:text-academy-300 transition-colors line-clamp-2">' + b.courseName + '</h4>',
+                            '        </div>',
+                            '        ',
+                            '        <div class="flex items-center justify-between border-t border-slate-900/80 pt-4 gap-2">',
+                            '            <button onclick="TA.UI.unenrollBatch(\'' + b.courseId + '\')" class="text-xs text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1.5">',
+                            '                <i class="fa-solid fa-trash"></i> Remove',
+                            '            </button>',
+                            '            <button onclick="TA.Router.navigate(\'#/course/' + b.courseId + '\')" class="bg-academy-600 hover:bg-academy-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5">',
+                            '                 Enter Classroom <i class="fa-solid fa-arrow-right text-[10px]"></i>',
+                            '            </button>',
+                            '        </div>',
+                            '    </div>',
+                            '</div>'
+                        ].join('');
                         grid.insertAdjacentHTML('beforeend', card);
                     });
                 },
 
-                renderCategories(list) {
+                renderCategories: function(list) {
                     const grid = document.getElementById('categories-selection-grid');
                     grid.innerHTML = '';
 
                     if (list.length === 0) {
-                        grid.innerHTML = `<p class="col-span-full text-center py-10 text-xs text-slate-500">No categories found.</p>`;
+                        grid.innerHTML = '<p class="col-span-full text-center py-10 text-xs text-slate-500">No categories found.</p>';
                         return;
                     }
 
@@ -920,41 +925,41 @@ const HTML_CONTENT = `<!DOCTYPE html>
                         'from-sky-600/20 via-blue-900/5 to-slate-950'
                     ];
 
-                    list.forEach((cat, index) => {
+                    list.forEach(function(cat, index) {
                         const gradient = themeGradients[index % themeGradients.length];
                         
-                        const card = `
-                            <div onclick="TA.Router.navigate('/category/${cat.categoryId}')" class="glass-card bg-gradient-to-br ${gradient} p-5 rounded-2xl cursor-pointer hover:-translate-y-1 hover:border-academy-500/50 transition-all duration-300 group flex flex-col justify-between h-36">
-                                <div class="flex justify-between items-start">
-                                    <div class="p-2.5 bg-slate-900/95 rounded-xl border border-slate-800 group-hover:bg-academy-500/10 group-hover:border-academy-500/20 transition-all">
-                                        <i class="fa-solid fa-graduation-cap text-lg text-academy-400"></i>
-                                    </div>
-                                    <span class="text-[9px] font-bold text-slate-500 bg-slate-950 px-2 py-0.5 rounded border border-slate-900">ID: ${cat.categoryId}</span>
-                                </div>
-                                <h4 class="text-xs sm:text-sm font-bold text-slate-100 group-hover:text-academy-300 transition-colors line-clamp-2">${cat.courseCategory}</h4>
-                            </div>
-                        `;
+                        const card = [
+                            '<div onclick="TA.Router.navigate(\'#/category/' + cat.categoryId + '\')" class="glass-card bg-gradient-to-br ' + gradient + ' p-5 rounded-2xl cursor-pointer hover:-translate-y-1 hover:border-academy-500/50 transition-all duration-300 group flex flex-col justify-between h-36">',
+                            '    <div class="flex justify-between items-start">',
+                            '        <div class="p-2.5 bg-slate-900/95 rounded-xl border border-slate-800 group-hover:bg-academy-500/10 group-hover:border-academy-500/20 transition-all">',
+                            '            <i class="fa-solid fa-graduation-cap text-lg text-academy-400"></i>',
+                            '        </div>',
+                            '        <span class="text-[9px] font-bold text-slate-500 bg-slate-950 px-2 py-0.5 rounded border border-slate-900">ID: ' + cat.categoryId + '</span>',
+                            '    </div>',
+                            '    <h4 class="text-xs sm:text-sm font-bold text-slate-100 group-hover:text-academy-300 transition-colors line-clamp-2">' + cat.courseCategory + '</h4>',
+                            '</div>'
+                        ].join('');
                         grid.insertAdjacentHTML('beforeend', card);
                     });
                 },
 
-                renderCourses(list) {
+                renderCourses: function(list) {
                     const grid = document.getElementById('courses-display-grid');
                     grid.innerHTML = '';
 
                     if (!list || list.length === 0) {
-                        grid.innerHTML = `
-                            <div class="col-span-full text-center py-24 text-slate-500 space-y-3">
-                                <i class="fa-solid fa-face-frown text-4xl opacity-40"></i>
-                                <p class="text-sm font-bold">इस श्रेणी में कोई लाइव बैच उपलब्ध नहीं हैं।</p>
-                            </div>
-                        `;
+                        grid.innerHTML = [
+                            '<div class="col-span-full text-center py-24 text-slate-500 space-y-3">',
+                            '    <i class="fa-solid fa-face-frown text-4xl opacity-40"></i>',
+                            '    <p class="text-sm font-bold">इस श्रेणी में कोई लाइव बैच उपलब्ध नहीं हैं।</p>',
+                            '</div>'
+                        ].join('');
                         return;
                     }
 
-                    list.forEach(course => {
+                    list.forEach(function(course) {
                         const rawThumb = course.cthumb || course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&q=80';
-                        const price = course.price ? `₹${course.price}` : 'Access Granted';
+                        const price = course.price ? '₹' + course.price : 'Access Granted';
                         
                         const itemPayload = JSON.stringify({
                             courseId: course.courseId,
@@ -963,73 +968,73 @@ const HTML_CONTENT = `<!DOCTYPE html>
                             price: price
                         }).replace(/"/g, '&quot;');
 
-                        const card = `
-                            <div class="glass-card rounded-2xl overflow-hidden group hover:border-academy-500/40 transition-all duration-300 flex flex-col justify-between">
-                                <div class="relative aspect-video overflow-hidden bg-slate-950">
-                                    <img src="${rawThumb}" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&q=80'" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300">
-                                    <span class="absolute bottom-3 left-3 bg-emerald-600 border border-emerald-500 text-white font-extrabold text-[11px] px-3 py-1 rounded-lg shadow-md">
-                                        ${price}
-                                    </span>
-                                </div>
-
-                                <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
-                                    <div class="space-y-1.5">
-                                        <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">BATCH ID: ${course.courseId}</p>
-                                        <h4 class="text-xs sm:text-sm font-extrabold text-white line-clamp-2 group-hover:text-academy-300 transition-colors">${course.courseName}</h4>
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-2 gap-2 pt-3 border-t border-slate-900">
-                                        <button onclick="TA.UI.enrollBatch(${itemPayload})" class="bg-slate-950 hover:bg-slate-900 border border-slate-850 text-[10px] text-slate-300 font-extrabold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-bookmark text-academy-400"></i> Enroll
-                                        </button>
-                                        <button onclick="TA.Router.navigate('/course/${course.courseId}')" class="bg-academy-600 hover:bg-academy-500 text-[10px] text-white font-extrabold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1 shadow-lg">
-                                            Classroom <i class="fa-solid fa-circle-arrow-right"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                        const card = [
+                            '<div class="glass-card rounded-2xl overflow-hidden group hover:border-academy-500/40 transition-all duration-300 flex flex-col justify-between">',
+                            '    <div class="relative aspect-video overflow-hidden bg-slate-950">',
+                            '        <img src="' + rawThumb + '" onerror="this.src=\'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&q=80\'" class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300">',
+                            '        <span class="absolute bottom-3 left-3 bg-emerald-600 border border-emerald-500 text-white font-extrabold text-[11px] px-3 py-1 rounded-lg shadow-md">',
+                            '            ' + price,
+                            '        </span>',
+                            '    </div>',
+                            '    <div class="p-5 flex-1 flex flex-col justify-between space-y-4">',
+                            '        <div class="space-y-1.5">',
+                            '            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">BATCH ID: ' + course.courseId + '</p>',
+                            '            <h4 class="text-xs sm:text-sm font-extrabold text-white line-clamp-2 group-hover:text-academy-300 transition-colors">' + course.courseName + '</h4>',
+                            '        </div>',
+                            '        <div class="grid grid-cols-2 gap-2 pt-3 border-t border-slate-900">',
+                            '            <button onclick="TA.UI.enrollBatch(' + itemPayload + ')" class="bg-slate-950 hover:bg-slate-900 border border-slate-850 text-[10px] text-slate-300 font-extrabold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1">',
+                            '                <i class="fa-solid fa-bookmark text-academy-400"></i> Enroll',
+                            '            </button>',
+                            '            <button onclick="TA.Router.navigate(\'#/course/' + course.courseId + '\')" class="bg-academy-600 hover:bg-academy-500 text-[10px] text-white font-extrabold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1 shadow-lg">',
+                            '                Classroom <i class="fa-solid fa-circle-arrow-right"></i>',
+                            '            </button>',
+                            '        </div>',
+                            '    </div>',
+                            '</div>'
+                        ].join('');
                         grid.insertAdjacentHTML('beforeend', card);
                     });
                 },
 
-                renderSyllabusTree() {
+                renderSyllabusTree: function() {
                     const tree = document.getElementById('syllabus-accordion-tree');
                     tree.innerHTML = '';
 
                     if (appState.syllabusTree.length === 0) {
-                        tree.innerHTML = `<p class="text-xs text-slate-500 p-4 text-center">No syllabus chapters.</p>`;
+                        tree.innerHTML = '<p class="text-xs text-slate-500 p-4 text-center">No syllabus chapters.</p>';
                         return;
                     }
 
-                    appState.syllabusTree.forEach((subject, idx) => {
-                        const chaptersButtons = subject.subCategories.map(chapter => `
-                            <button onclick="TA.UI.selectChapter(${subject.categoryId}, '${subject.categoryName.replace(/'/g, "\\'")}', ${chapter.subCategoryId}, '${chapter.subCategoryName.replace(/'/g, "\\'")}')" id="btn-chap-${chapter.subCategoryId}" class="w-full text-left text-[11px] text-slate-400 hover:text-white hover:bg-slate-900/65 px-3 py-2.5 rounded-xl flex items-center gap-2.5 transition-all">
-                                <i class="fa-solid fa-circle-play text-slate-650"></i>
-                                <span class="truncate">${chapter.subCategoryName}</span>
-                            </button>
-                        `).join('');
+                    appState.syllabusTree.forEach(function(subject, idx) {
+                        const chaptersButtons = subject.subCategories.map(function(chapter) {
+                            return [
+                                '<button onclick="TA.UI.selectChapter(' + subject.categoryId + ', \'' + subject.categoryName.replace(/'/g, "\\'") + '\', ' + chapter.subCategoryId + ', \'' + chapter.subCategoryName.replace(/'/g, "\\'") + '\')" id="btn-chap-' + chapter.subCategoryId + '" class="w-full text-left text-[11px] text-slate-400 hover:text-white hover:bg-slate-900/65 px-3 py-2.5 rounded-xl flex items-center gap-2.5 transition-all">',
+                                '    <i class="fa-solid fa-circle-play text-slate-650"></i>',
+                                '    <span class="truncate">' + chapter.subCategoryName + '</span>',
+                                '</button>'
+                            ].join('');
+                        }).join('');
 
-                        const accordionBlock = `
-                            <div class="border border-slate-900 rounded-2xl overflow-hidden bg-slate-950/40">
-                                <button onclick="TA.UI.toggleAccordionBlock(${idx})" class="w-full flex items-center justify-between px-4 py-3 bg-slate-900/30 hover:bg-slate-900/50 transition-all text-xs font-bold text-slate-200">
-                                    <span class="truncate pr-2 text-left flex items-center gap-2">
-                                        <i class="fa-solid fa-folder text-academy-400"></i> ${subject.categoryName}
-                                    </span>
-                                    <i id="acc-arrow-${idx}" class="fa-solid fa-chevron-down transition-transform text-[9px] text-slate-500"></i>
-                                </button>
-                                <div id="acc-content-${idx}" class="hidden p-1.5 space-y-1 bg-slate-950 border-t border-slate-900">
-                                    ${chaptersButtons || '<p class="text-[9px] text-slate-650 p-2 text-center">No lessons</p>'}
-                                </div>
-                            </div>
-                        `;
+                        const accordionBlock = [
+                            '<div class="border border-slate-900 rounded-2xl overflow-hidden bg-slate-950/40">',
+                            '    <button onclick="TA.UI.toggleAccordionBlock(' + idx + ')" class="w-full flex items-center justify-between px-4 py-3 bg-slate-900/30 hover:bg-slate-900/50 transition-all text-xs font-bold text-slate-200">',
+                            '        <span class="truncate pr-2 text-left flex items-center gap-2">',
+                            '            <i class="fa-solid fa-folder text-academy-400"></i> ' + subject.categoryName,
+                            '        </span>',
+                            '        <i id="acc-arrow-' + idx + '" class="fa-solid fa-chevron-down transition-transform text-[9px] text-slate-500"></i>',
+                            '    </button>',
+                            '    <div id="acc-content-' + idx + '" class="hidden p-1.5 space-y-1 bg-slate-950 border-t border-slate-900">',
+                            '        ' + (chaptersButtons || '<p class="text-[9px] text-slate-650 p-2 text-center">No lessons</p>'),
+                            '    </div>',
+                            '</div>'
+                        ].join('');
                         tree.insertAdjacentHTML('beforeend', accordionBlock);
                     });
                 },
 
-                toggleAccordionBlock(idx) {
-                    const el = document.getElementById(`acc-content-${idx}`);
-                    const arrow = document.getElementById(`acc-arrow-${idx}`);
+                toggleAccordionBlock: function(idx) {
+                    const el = document.getElementById("acc-content-" + idx);
+                    const arrow = document.getElementById("acc-arrow-" + idx);
                     if (el.classList.contains('hidden')) {
                         el.classList.remove('hidden');
                         arrow.classList.add('rotate-180');
@@ -1039,46 +1044,46 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     }
                 },
 
-                selectChapter(catId, catName, subId, subName) {
-                    document.querySelectorAll('#syllabus-accordion-tree button').forEach(b => {
+                selectChapter: function(catId, catName, subId, subName) {
+                    document.querySelectorAll('#syllabus-accordion-tree button').forEach(function(b) {
                         b.classList.remove('bg-academy-950/30', 'text-academy-400');
                     });
-                    const activeBtn = document.getElementById(`btn-chap-${subId}`);
+                    const activeBtn = document.getElementById("btn-chap-" + subId);
                     if (activeBtn) activeBtn.classList.add('bg-academy-950/30', 'text-academy-400');
 
                     document.getElementById('active-subject-header').innerText = catName;
                     document.getElementById('active-chapter-header').innerText = subName;
 
-                    window.location.hash = `#/course/${appState.activeCourseId}/${catId}/${subId}`;
+                    window.location.hash = "#/course/" + appState.activeCourseId + "/" + catId + "/" + subId;
                 },
 
-                extractYoutubeId(url) {
+                extractYoutubeId: function(url) {
                     if (!url) return null;
                     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
                     const match = url.match(regExp);
                     return (match && match[2].length === 11) ? match[2] : null;
                 },
 
-                getYoutubeThumbnail(url) {
+                getYoutubeThumbnail: function(url) {
                     const id = this.extractYoutubeId(url);
                     if (id) {
-                        return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+                        return "https://img.youtube.com/vi/" + id + "/mqdefault.jpg";
                     }
                     return 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&q=80';
                 },
 
-                formatLectureDate(dateStr) {
+                formatLectureDate: function(dateStr) {
                     if (!dateStr) return 'Live Scheduled';
                     try {
                         const parts = dateStr.split(' ');
                         const dateOnly = parts[0].split('-');
-                        return `${dateOnly[2]}-${dateOnly[1]}-${dateOnly[0]}`;
+                        return dateOnly[2] + "-" + dateOnly[1] + "-" + dateOnly[0];
                     } catch (e) {
                         return dateStr;
                     }
                 },
 
-                renderLectures(lectures) {
+                renderLectures: function(lectures) {
                     const grid = document.getElementById('classroom-lectures-output-grid');
                     const empty = document.getElementById('classroom-empty-state');
                     grid.innerHTML = '';
@@ -1089,70 +1094,62 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     }
                     empty.classList.add('hidden');
 
-                    lectures.forEach(l => {
+                    var self = this;
+                    lectures.forEach(function(l) {
                         const title = l.title || 'Untitled Lesson';
                         const videoLink = l.url || l.Url || '';
                         const pdfLink = l.pdfUrl || '';
-                        const thumb = this.getYoutubeThumbnail(videoLink);
-                        const displayDate = this.formatLectureDate(l.eventDateTime);
+                        const thumb = self.getYoutubeThumbnail(videoLink);
+                        const displayDate = self.formatLectureDate(l.eventDateTime);
                         
-                        const lectureId = l.id || String(title).replace(/\s+/g, '');
+                        const lectureId = l.id || String(title).replace(/\s/g, '');
                         const isCompleted = appState.completedLectures.includes(String(lectureId));
 
-                        const card = `
-                            <div class="glass-card rounded-2xl overflow-hidden flex flex-col justify-between hover:border-slate-800 transition-all duration-300">
-                                <div class="relative aspect-video overflow-hidden bg-slate-950">
-                                    <img src="${thumb}" class="object-cover w-full h-full">
-                                    <div class="absolute inset-0 bg-slate-950/70 flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity">
-                                        ${videoLink ? `
-                                            <button onclick="TA.UI.openTheaterMode('${videoLink}', '${title.replace(/'/g, "\\'")}', '${lectureId}')" class="h-11 w-11 bg-academy-600 hover:bg-academy-500 hover:scale-110 text-white rounded-full flex items-center justify-center transition-all shadow-lg">
-                                                <i class="fa-solid fa-play ml-1 text-sm"></i>
-                                            </button>
-                                        ` : `
-                                            <div class="h-11 w-11 bg-slate-900 border border-slate-800 text-slate-600 rounded-full flex items-center justify-center">
-                                                <i class="fa-solid fa-lock text-xs"></i>
-                                            </div>
-                                        `}
-                                    </div>
-                                    <span class="absolute top-2.5 left-2.5 bg-slate-950/90 border border-slate-800 text-[8px] font-bold text-slate-400 px-2 py-0.5 rounded-md flex items-center gap-1 uppercase tracking-wider">
-                                        <i class="fa-solid fa-calendar"></i> ${displayDate}
-                                    </span>
-                                    ${isCompleted ? `
-                                        <span class="absolute bottom-2.5 right-2.5 bg-emerald-600 border border-emerald-500 text-white font-extrabold text-[8px] px-2 py-0.5 rounded-full uppercase tracking-wider">
-                                            Completed <i class="fa-solid fa-check"></i>
-                                        </span>
-                                    ` : ''}
-                                </div>
+                        const playButtonHtml = videoLink ? 
+                            '<button onclick="TA.UI.openTheaterMode(\'' + videoLink + '\', \'' + title.replace(/'/g, "\\'") + '\', \'' + lectureId + '\')" class="h-11 w-11 bg-academy-600 hover:bg-academy-500 hover:scale-110 text-white rounded-full flex items-center justify-center transition-all shadow-lg"><i class="fa-solid fa-play ml-1 text-sm"></i></button>' 
+                            : '<div class="h-11 w-11 bg-slate-900 border border-slate-800 text-slate-600 rounded-full flex items-center justify-center"><i class="fa-solid fa-lock text-xs"></i></div>';
 
-                                <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
-                                    <h5 class="text-xs sm:text-sm font-bold text-slate-200 line-clamp-2">${title}</h5>
-                                    
-                                    <div class="grid ${videoLink && pdfLink ? 'grid-cols-2' : 'grid-cols-1'} gap-1.5 pt-3 border-t border-slate-900/60">
-                                        ${videoLink ? `
-                                            <a href="${videoLink}" target="_blank" class="bg-indigo-950/50 hover:bg-indigo-900 border border-indigo-800/40 text-[9px] text-indigo-300 font-extrabold py-2 rounded-xl transition-all flex items-center justify-center gap-1">
-                                                <i class="fa-solid fa-external-link"></i> Play External
-                                            </a>
-                                        ` : ''}
-                                        ${pdfLink ? `
-                                            <a href="${pdfLink}" target="_blank" class="bg-emerald-950/40 hover:bg-emerald-900 border border-emerald-800/40 text-[9px] text-emerald-300 font-extrabold py-2 rounded-xl transition-all flex items-center justify-center gap-1">
-                                                <i class="fa-solid fa-file-pdf"></i> PDF Notes
-                                            </a>
-                                        ` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                        const pdfBtnHtml = pdfLink ? 
+                            '<a href="' + pdfLink + '" target="_blank" class="bg-emerald-950/40 hover:bg-emerald-900 border border-emerald-800/40 text-[9px] text-emerald-300 font-extrabold py-2 rounded-xl transition-all flex items-center justify-center gap-1"><i class="fa-solid fa-file-pdf"></i> PDF Notes</a>' : '';
+
+                        const extBtnHtml = videoLink ? 
+                            '<a href="' + videoLink + '" target="_blank" class="bg-indigo-950/50 hover:bg-indigo-900 border border-indigo-800/40 text-[9px] text-indigo-300 font-extrabold py-2 rounded-xl transition-all flex items-center justify-center gap-1"><i class="fa-solid fa-external-link"></i> Play External</a>' : '';
+
+                        const completedBadgeHtml = isCompleted ? 
+                            '<span class="absolute bottom-2.5 right-2.5 bg-emerald-600 border border-emerald-500 text-white font-extrabold text-[8px] px-2 py-0.5 rounded-full uppercase tracking-wider">Completed <i class="fa-solid fa-check"></i></span>' : '';
+
+                        const card = [
+                            '<div class="glass-card rounded-2xl overflow-hidden flex flex-col justify-between hover:border-slate-800 transition-all duration-300">',
+                            '    <div class="relative aspect-video overflow-hidden bg-slate-950">',
+                            '        <img src="' + thumb + '" class="object-cover w-full h-full">',
+                            '        <div class="absolute inset-0 bg-slate-950/70 flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity">',
+                            '            ' + playButtonHtml,
+                            '        </div>',
+                            '        <span class="absolute top-2.5 left-2.5 bg-slate-950/90 border border-slate-800 text-[8px] font-bold text-slate-400 px-2 py-0.5 rounded-md flex items-center gap-1 uppercase tracking-wider">',
+                            '            <i class="fa-solid fa-calendar"></i> ' + displayDate,
+                            '        </span>',
+                            '        ' + completedBadgeHtml,
+                            '    </div>',
+                            '    <div class="p-4 flex-1 flex flex-col justify-between space-y-3">',
+                            '        <h5 class="text-xs sm:text-sm font-bold text-slate-200 line-clamp-2">' + title + '</h5>',
+                            '        <div class="grid ' + (videoLink && pdfLink ? 'grid-cols-2' : 'grid-cols-1') + ' gap-1.5 pt-3 border-t border-slate-900/60">',
+                            '            ' + extBtnHtml,
+                            '            ' + pdfBtnHtml,
+                            '        </div>',
+                            '    </div>',
+                            '</div>'
+                        ].join('');
                         grid.insertAdjacentHTML('beforeend', card);
                     });
                 },
 
-                filterLectures() {
+                filterLectures: function() {
                     const q = document.getElementById('lecture-search-input').value.toLowerCase();
-                    const filtered = appState.activeLectures.filter(l => (l.title || '').toLowerCase().includes(q));
+                    const filtered = appState.activeLectures.filter(function(l) { return (l.title || '').toLowerCase().includes(q); });
                     this.renderLectures(filtered);
                 },
 
-                openTheaterMode(url, title, lectureId) {
+                openTheaterMode: function(url, title, lectureId) {
                     const ytId = this.extractYoutubeId(url);
                     const iframe = document.getElementById('theater-iframe');
                     const fallback = document.getElementById('theater-restricted-fallback');
@@ -1166,7 +1163,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     if (ytId) {
                         fallback.classList.add('hidden');
                         iframe.classList.remove('hidden');
-                        iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`;
+                        iframe.src = "https://www.youtube.com/embed/" + ytId + "?autoplay=1&rel=0";
                     } else {
                         iframe.classList.add('hidden');
                         fallback.classList.remove('hidden');
@@ -1174,32 +1171,33 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     }
 
                     const isDone = appState.completedLectures.includes(String(lectureId));
+                    var self = this;
                     if (isDone) {
                         doneBtn.className = "bg-rose-950 hover:bg-rose-900 border border-rose-900 text-rose-300 text-[10px] font-bold px-4 py-2 rounded-xl transition-all";
-                        doneBtn.innerHTML = `Undo Complete`;
-                        doneBtn.onclick = () => this.toggleLectureCompletion(lectureId, false);
+                        doneBtn.innerHTML = "Undo Complete";
+                        doneBtn.onclick = function() { self.toggleLectureCompletion(lectureId, false); };
                     } else {
                         doneBtn.className = "bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-4 py-2 rounded-xl transition-all";
-                        doneBtn.innerHTML = `Complete Lesson`;
-                        doneBtn.onclick = () => this.toggleLectureCompletion(lectureId, true);
+                        doneBtn.innerHTML = "Complete Lesson";
+                        doneBtn.onclick = function() { self.toggleLectureCompletion(lectureId, true); };
                     }
 
                     document.getElementById('video-theater-modal').classList.remove('hidden');
                 },
 
-                closeTheaterMode() {
+                closeTheaterMode: function() {
                     document.getElementById('video-theater-modal').classList.add('hidden');
                     document.getElementById('theater-iframe').src = '';
                 },
 
-                toggleLectureCompletion(lectureId, status) {
+                toggleLectureCompletion: function(lectureId, status) {
                     if (status) {
                         if (!appState.completedLectures.includes(String(lectureId))) {
                             appState.completedLectures.push(String(lectureId));
                         }
                         this.showToast("पाठ्यक्रम की प्रोग्रेस सहेजी गई।", "success");
                     } else {
-                        appState.completedLectures = appState.completedLectures.filter(id => String(id) !== String(lectureId));
+                        appState.completedLectures = appState.completedLectures.filter(function(id) { return String(id) !== String(lectureId); });
                         this.showToast("पाठ्यक्रम प्रोग्रेस रोलबैक की गई।", "info");
                     }
 
@@ -1209,7 +1207,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     this.renderLectures(appState.activeLectures);
                 },
 
-                showToast(message, type = "info") {
+                showToast: function(message, type) {
                     const container = document.getElementById('toast-overlay-container');
                     const toastId = Date.now();
 
@@ -1219,29 +1217,29 @@ const HTML_CONTENT = `<!DOCTYPE html>
                         info: "bg-indigo-950 border-indigo-500 text-indigo-300"
                     }[type] || "bg-slate-900 border-slate-700 text-slate-300";
 
-                    const html = `
-                        <div id="toast-${toastId}" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl border ${configurations} shadow-2xl pointer-events-auto transition-all transform translate-y-3 opacity-0 max-w-sm">
-                            <i class="fa-solid fa-circle-info text-md shrink-0"></i>
-                            <span class="text-xs font-bold leading-normal">${message}</span>
-                        </div>
-                    `;
+                    const html = [
+                        '<div id="toast-' + toastId + '" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl border ' + configurations + ' shadow-2xl pointer-events-auto transition-all transform translate-y-3 opacity-0 max-w-sm">',
+                        '    <i class="fa-solid fa-circle-info text-md shrink-0"></i>',
+                        '    <span class="text-xs font-bold leading-normal">' + message + '</span>',
+                        '</div>'
+                    ].join('');
 
                     container.insertAdjacentHTML('beforeend', html);
-                    const el = document.getElementById(`toast-${toastId}`);
+                    const el = document.getElementById("toast-" + toastId);
 
-                    setTimeout(() => {
+                    setTimeout(function() {
                         el.classList.remove('translate-y-3', 'opacity-0');
                     }, 50);
 
-                    setTimeout(() => {
+                    setTimeout(function() {
                         el.classList.add('opacity-0', 'translate-y-3');
-                        setTimeout(() => el.remove(), 400);
+                        setTimeout(function() { el.remove(); }, 400);
                     }, 4000);
                 }
             }
         };
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', function() {
             TA.init();
         });
     </script>
