@@ -1,3 +1,9 @@
-name = "ta"
+name = "teachers-academy"
 main = "ta.js"
-compatibility_date = "2025-07-11"
+compatibility_date = "2024-03-20"
+
+# Ye rule ta.js ko permission deta hai "import htmlContent from './ta.html'" chalane ki
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallback = false
