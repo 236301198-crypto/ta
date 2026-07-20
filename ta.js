@@ -1,6 +1,6 @@
 /**
- * TEACHERS ACADEMY - Premium EdTech Platform V3 (Pro)
- * Unified Cloudflare Worker Script - Fullscreen, Notch Optimized, Premium UI
+ * TEACHERS ACADEMY - Premium EdTech Platform V4 (Pro + Persistent Fullscreen)
+ * Unified Cloudflare Worker Script - Notch Optimized, Aggressive Fullscreen Enforcer
  */
 
 const DEFAULT_TOKEN = "4fg1iZcgrW2X8QsF0DpX0ekBNZSNmugOWw9TJWVX5cTmYX4il3VIO%2B1lP6eCPAxoj93%2BhuIgNm03oQ1sCIkmv4zjcEdZwiTA5kpS8WG9VH9tQ6nsKQRDDjSzcQCQpASTHpGzOr%2F4vCIOahj4Z%2FMrQ2eud8PtLvIp1xit7EARO18%3D";
@@ -179,7 +179,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         @keyframes spin { to { transform: rotate(360deg); } }
         
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .accordion-item.active .accordion-content { max-height: 2000px; }
+        .accordion-item.active .accordion-content { max-height: 2500px; }
         .accordion-header svg { transition: transform 0.3s ease; }
         .accordion-item.active .accordion-header svg { transform: rotate(180deg); }
         
@@ -189,7 +189,7 @@ const HTML_PAGE = `<!DOCTYPE html>
         .aspect-video-box { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; }
         .aspect-video-box img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
         
-        /* Active Lesson Highlight - Thicker border and pronounced background */
+        /* Active Lesson Highlight */
         .lesson-card { transition: all 0.25s ease; border: 2px solid transparent; }
         .lesson-card.active-lesson { 
             border-color: #0284c7; 
@@ -208,6 +208,12 @@ const HTML_PAGE = `<!DOCTYPE html>
         .section-view { display: none; animation: fadeIn 0.35s ease; }
         .section-view.active-view { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Fullscreen Custom Scrollbar (optional polish) */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-800 pb-20 md:pb-0 bg-slate-50">
@@ -220,7 +226,7 @@ const HTML_PAGE = `<!DOCTYPE html>
                      class="w-10 h-10 rounded-lg shadow-sm border border-slate-100 object-cover" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&q=80'">
                 <div>
                     <h1 class="text-lg font-black tracking-tight text-slate-900 leading-tight">TEACHERS ACADEMY</h1>
-                    <p class="text-[10px] font-bold text-amber-500 tracking-widest uppercase">Premium Branding by Naveen</p>
+                    <p class="text-[10px] font-bold text-amber-500 tracking-widest uppercase">Premium by Naveen</p>
                 </div>
             </div>
             
@@ -233,10 +239,10 @@ const HTML_PAGE = `<!DOCTYPE html>
                 <!-- Fullscreen Toggle Button -->
                 <button onclick="toggleFullScreen()" title="Toggle Fullscreen" class="p-2 text-slate-400 hover:text-primary-600 hover:bg-slate-100 rounded-full transition-all focus:outline-none">
                     <svg id="fs-icon-expand" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                     </svg>
                     <svg id="fs-icon-compress" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
@@ -266,7 +272,7 @@ const HTML_PAGE = `<!DOCTYPE html>
                 <div class="w-24 h-24 bg-white shadow-sm border border-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-6">
                     <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                 </div>
-                <h3 class="text-2xl font-black text-slate-900 uppercase">Koi Batch Nahi Hai</h3>
+                <h3 class="text-2xl font-black text-slate-900 uppercase tracking-wide">Koi Batch Nahi Hai</h3>
                 <p class="text-sm font-semibold text-slate-500 mt-2 mb-8">Niche diye button se naye premium batches explore karein.</p>
                 <a href="#/all" class="px-8 py-4 font-black tracking-wider uppercase rounded-xl text-white bg-primary-600 hover:bg-primary-700 transition shadow-xl shadow-primary-600/30">Browse Courses</a>
             </div>
@@ -332,7 +338,7 @@ const HTML_PAGE = `<!DOCTYPE html>
                 <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-slate-300 shadow-sm border border-slate-100 mb-6">
                     <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253" /></svg>
                 </div>
-                <h3 class="text-2xl font-black uppercase text-slate-900">Koi Data Nahi Hai</h3>
+                <h3 class="text-2xl font-black uppercase tracking-wide text-slate-900">Koi Data Nahi Hai</h3>
                 <p class="text-sm font-bold text-slate-500 mt-2">Is topic me abhi videos/PDFs upload nahi huye hain.</p>
             </div>
         </section>
@@ -379,34 +385,52 @@ const HTML_PAGE = `<!DOCTYPE html>
             initStorage();
             bindEvents();
             routeHandler();
-            window.addEventListener('hashchange', routeHandler);
+            window.addEventListener('hashchange', function() {
+                // When system back button is pressed, ensure fullscreen stays on if intent is true
+                setTimeout(enforceFullscreen, 100);
+                routeHandler();
+            });
             
-            // Auto Fullscreen Setup Trigger on first touch/click
-            window.addEventListener('click', attemptAutoFullscreen, { once: true });
-            window.addEventListener('touchstart', attemptAutoFullscreen, { once: true });
-            
-            // Listen to fullscreen changes to update icon
             document.addEventListener('fullscreenchange', updateFullscreenIcons);
             document.addEventListener('webkitfullscreenchange', updateFullscreenIcons);
+
+            // AGGRESSIVE FULLSCREEN ENFORCER 
+            // Combatting Android/iOS dropping fullscreen on tab switch or swipe back
+            document.addEventListener('click', enforceFullscreen, true);
+            document.addEventListener('touchstart', enforceFullscreen, {passive: true, capture: true});
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') {
+                    // When returning from new tab video, immediately try to restore fullscreen
+                    setTimeout(enforceFullscreen, 200);
+                }
+            });
+            window.addEventListener('focus', enforceFullscreen);
         });
 
-        // --- FULLSCREEN LOGIC ---
+        // --- PERSISTENT FULLSCREEN LOGIC ---
         function toggleFullScreen() {
+            var docElm = document.documentElement;
             if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                var docElm = document.documentElement;
-                if (docElm.requestFullscreen) docElm.requestFullscreen();
-                else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
+                // User wants fullscreen
+                sessionStorage.setItem('fs_intent', '1');
+                if (docElm.requestFullscreen) docElm.requestFullscreen().catch(e=>{});
+                else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen().catch(e=>{});
             } else {
+                // User manually exits fullscreen
+                sessionStorage.setItem('fs_intent', '0');
                 if (document.exitFullscreen) document.exitFullscreen();
                 else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
             }
         }
 
-        function attemptAutoFullscreen() {
-            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                var docElm = document.documentElement;
-                if (docElm.requestFullscreen) docElm.requestFullscreen().catch(e => console.log(e));
-                else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen().catch(e => console.log(e));
+        function enforceFullscreen() {
+            // Only force if user intentionally enabled it
+            if (sessionStorage.getItem('fs_intent') === '1') {
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    var docElm = document.documentElement;
+                    if (docElm.requestFullscreen) docElm.requestFullscreen().catch(e=>{});
+                    else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen().catch(e=>{});
+                }
             }
         }
 
@@ -640,7 +664,7 @@ const HTML_PAGE = `<!DOCTYPE html>
             loadCategoryCourses(hash[2]);
         };
 
-        // --- VIEW 4: SYLLABUS INDEX (PREMIUM UI ENHANCEMENT) ---
+        // --- VIEW 4: SYLLABUS INDEX ---
         async function loadBatchSyllabus(courseId) {
             state.selectedCourseId = courseId;
             var current = state.myBatches.find(function(b) { return String(b.courseId) === String(courseId); });
@@ -667,7 +691,6 @@ const HTML_PAGE = `<!DOCTYPE html>
                     state.courseCategories.forEach(function(cat) {
                         var sublist = '';
                         cat.subs.forEach(function(sub) {
-                            // Premium Topic Cards inside the accordion
                             sublist += '<button onclick="window.location.hash=\\'#/lessons/' + courseId + '/' + cat.id + '/' + sub.id + '\\'" class="topic-card w-full text-left p-4 mb-3 bg-white border border-slate-200 border-l-4 border-l-transparent rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-between group">' +
                                 '<div class="flex items-center gap-4">' +
                                 '<div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-primary-100 group-hover:text-primary-600 transition-colors">' +
@@ -775,7 +798,6 @@ const HTML_PAGE = `<!DOCTYPE html>
                     mediaHTML = '<div class="w-full sm:w-56 shrink-0 bg-slate-100 aspect-video sm:aspect-auto sm:h-full overflow-hidden border-r border-slate-100"><img src="' + thumb + '" class="w-full h-full object-cover opacity-70 grayscale"></div>';
                 }
 
-                // Professional Premium PDF Button Icon and Styles
                 var pdfBtn = pdf ? '<a href="' + pdf + '" target="_blank" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 border border-rose-200 font-black text-[10px] uppercase tracking-widest rounded-xl transition flex items-center gap-2 shadow-sm">' +
                     '<svg class="w-5 h-5 text-rose-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> Open PDF</a>' : '';
                 
