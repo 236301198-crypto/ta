@@ -3,7 +3,7 @@
  * Unified Cloudflare Worker Script - Notch Optimized, Aggressive Fullscreen Enforcer
  */
 
-const DEFAULT_TOKEN = "4fg1iZcgrW2X8QsF0DpX0ekBNZSNmugOWw9TJWVX5cTmYX4il3VIO%2B1lP6eCPAxoj93%2BhuIgNm03oQ1sCIkmv4zjcEdZwiTA5kpS8WG9VH9tQ6nsKQRDDjSzcQCQpASTHpGzOr%2F4vCIOahj4Z%2FMrQ2eud8PtLvIp1xit7EARO18%3D";
+const DEFAULT_TOKEN = "4fg1iZcgrW2X8QsF0DpX0ekBNZSNmugOWw9TJWVX5cTmYX4il3VIO%2B1lP6eCPAxo2iCOymZraPHx0TiOFLo8Ythn0PvBpf01GRb7tid9IZp9bYsEwkjvaUhhNGEUFpnkE0DZEOG8ud1XYuMSu45WpWSV9kk1KQy8IjS3ZyGutzY%3D";
 
 const BASE_HEADERS = {
   'Host': 'backend.classwalla.com',
